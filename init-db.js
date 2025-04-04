@@ -28,7 +28,7 @@ async function initializeDatabase() {
                 password VARCHAR(255) NOT NULL,
                 role ENUM('user', 'admin') DEFAULT 'user',
                 approved BOOLEAN DEFAULT FALSE,
-                profile_picture VARCHAR(255) DEFAULT NULL,
+                profile_picture LONGTEXT DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);

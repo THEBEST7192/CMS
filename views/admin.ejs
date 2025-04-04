@@ -9,7 +9,16 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h5 class="card-title"><%= user.username %></h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <% if (user.profile_picture) { %>
+                                        <img src="<%= user.profile_picture %>" alt="Profile" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                    <% } else { %>
+                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                            <span class="text-white"><%= user.username.charAt(0).toUpperCase() %></span>
+                                        </div>
+                                    <% } %>
+                                    <h5 class="card-title mb-0"><%= user.username %></h5>
+                                </div>
                                 <p class="card-text">Registered: <%= new Date(user.created_at).toLocaleString() %></p>
                                 <div class="d-flex gap-2">
                                     <form action="/admin/approve-user/<%= user.id %>" method="POST" class="d-inline">
@@ -37,7 +46,16 @@
                         <div class="col-md-4">
                             <div class="card mb-3">
                                 <div class="card-body">
-                                    <h5 class="card-title"><%= user.username %></h5>
+                                    <div class="d-flex align-items-center mb-3">
+                                        <% if (user.profile_picture) { %>
+                                            <img src="<%= user.profile_picture %>" alt="Profile" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <% } else { %>
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                                <span class="text-white"><%= user.username.charAt(0).toUpperCase() %></span>
+                                            </div>
+                                        <% } %>
+                                        <h5 class="card-title mb-0"><%= user.username %></h5>
+                                    </div>
                                     <p class="card-text">
                                         Status: <%= user.approved ? 'Approved' : 'Pending' %><br>
                                         Role: <%= user.role %><br>

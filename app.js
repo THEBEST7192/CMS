@@ -4,16 +4,24 @@ const session = require('express-session');
 const mysql = require('mysql2/promise');
 const bcrypt = require('bcryptjs');
 const path = require('path');
-const multer = require('multer');
 const fs = require('fs');
+const multer = require('multer');
+
+// Ensure uploads directory exists
+const uploadDir = path.join(__dirname, 'public', 'uploads');
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
 
 // Configure multer for storing uploaded files
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'public/uploads/');
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    const ext = path.extname(file.originalname);
+    cb(null, uniqueSuffix + ext);
   }
 });
 
@@ -49,9 +57,9 @@ const pool = mysql.createPool({
 });
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static('public'));
+app.use(express.json({limit: '10mb'}));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(express.static(path.join(__dirname, 'public')));
 app.set('view engine', 'ejs');
 app.use(session({
   secret: process.env.SESSION_SECRET,
@@ -161,8 +169,8 @@ app.get('/register', (req, res) => {
   renderWithLayout(res, 'register');
 });
 
-app.post('/register', upload.single('profile_picture'), async (req, res) => {
-  const { username, password } = req.body;
+app.post('/register', async (req, res) => {
+  const { username, password, profilePicture } = req.body;
   try {
     const [existingUsers] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
     if (existingUsers.length > 0) {
@@ -172,15 +180,10 @@ app.post('/register', upload.single('profile_picture'), async (req, res) => {
 
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    // Handle profile picture
-    let profilePicturePath = null;
-    if (req.file) {
-      profilePicturePath = `/uploads/${req.file.filename}`;
-    }
-    
+    // Save the base64 image data directly to the database
     await pool.query(
       'INSERT INTO users (username, password, approved, profile_picture) VALUES (?, ?, ?, ?)',
-      [username, hashedPassword, false, profilePicturePath]
+      [username, hashedPassword, false, profilePicture]
     );
     renderWithLayout(res, 'login', { message: 'Registration successful! Please wait for admin approval before logging in.' });
   } catch (error) {
@@ -244,30 +247,19 @@ app.get('/profile', isAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/profile', isAuthenticated, upload.single('profile_picture'), async (req, res) => {
+app.post('/profile', isAuthenticated, async (req, res) => {
   try {
-    // Handle profile picture update
-    let profilePicturePath = req.session.user.profile_picture;
+    const { profilePicture } = req.body;
     
-    if (req.file) {
-      // Delete old profile picture if exists
-      if (profilePicturePath) {
-        const oldPicturePath = path.join(__dirname, 'public', profilePicturePath);
-        if (fs.existsSync(oldPicturePath)) {
-          fs.unlinkSync(oldPicturePath);
-        }
-      }
-      
-      profilePicturePath = `/uploads/${req.file.filename}`;
-      
-      // Update database
+    // Update profile picture in database
+    if (profilePicture) {
       await pool.query(
         'UPDATE users SET profile_picture = ? WHERE id = ?',
-        [profilePicturePath, req.session.user.id]
+        [profilePicture, req.session.user.id]
       );
       
       // Update session
-      req.session.user.profile_picture = profilePicturePath;
+      req.session.user.profile_picture = profilePicture;
     }
     
     res.redirect('/profile');

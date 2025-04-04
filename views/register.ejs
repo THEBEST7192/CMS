@@ -6,7 +6,7 @@
                 <% if (locals.error) { %>
                     <div class="alert alert-danger"><%= error %></div>
                 <% } %>
-                <form method="POST" action="/register" enctype="multipart/form-data">
+                <form method="POST" action="/register">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="username" name="username" required>
@@ -16,8 +16,12 @@
                         <input type="password" class="form-control" id="password" name="password" required>
                     </div>
                     <div class="mb-3">
-                        <label for="profile_picture" class="form-label">Profile Picture (Optional)</label>
-                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                        <label for="profilePictureInput" class="form-label">Profile Picture (Optional)</label>
+                        <input type="file" class="form-control" id="profilePictureInput" accept="image/*" onchange="encodeImageToBase64()">
+                        <input type="hidden" id="profilePicture" name="profilePicture">
+                    </div>
+                    <div id="imagePreview" class="text-center mb-3" style="display: none;">
+                        <img id="preview" src="" alt="Profile Preview" style="max-width: 150px; max-height: 150px; object-fit: cover;" class="rounded-circle">
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Register</button>
                 </form>
@@ -28,3 +32,21 @@
         </div>
     </div>
 </div>
+
+<script>
+function encodeImageToBase64() {
+    const fileInput = document.getElementById('profilePictureInput');
+    const file = fileInput.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const base64Image = e.target.result;
+            document.getElementById('profilePicture').value = base64Image;
+            document.getElementById('preview').src = base64Image;
+            document.getElementById('imagePreview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+}
+</script>

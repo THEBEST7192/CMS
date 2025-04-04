@@ -9,19 +9,55 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
         <div class="container">
-            <a class="navbar-brand" href="/">CMS</a>
-            <div class="navbar-nav ms-auto">
-                <% if (typeof user !== 'undefined' && user) { %>
-                    <% if (user.role === 'admin') { %>
-                        <a class="nav-link" href="/admin">Admin Panel</a>
+            <a class="navbar-brand" href="/">Content Management</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <% if (locals.user) { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/submit">Submit Content</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/profile">My Profile</a>
+                        </li>
+                        <% if (locals.user.role === 'admin') { %>
+                            <li class="nav-item">
+                                <a class="nav-link" href="/admin">Admin Panel</a>
+                            </li>
+                        <% } %>
                     <% } %>
-                    <a class="nav-link" href="/submit">Submit Content</a>
-                    <a class="nav-link" href="/logout">Logout</a>
-                <% } else { %>
-                    <a class="nav-link" href="/login">Login</a>
-                <% } %>
+                </ul>
+                <ul class="navbar-nav">
+                    <% if (locals.user) { %>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                <% if (locals.user.profile_picture) { %>
+                                    <img src="<%= locals.user.profile_picture %>" alt="Profile" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                                <% } %>
+                                <%= locals.user.username %>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                                <li><a class="dropdown-item" href="/profile">Edit Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="/logout">Logout</a></li>
+                            </ul>
+                        </li>
+                    <% } else { %>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/login">Login</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="/register">Register</a>
+                        </li>
+                    <% } %>
+                </ul>
             </div>
         </div>
     </nav>
