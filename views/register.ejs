@@ -6,7 +6,7 @@
                 <% if (locals.error) { %>
                     <div class="alert alert-danger"><%= error %></div>
                 <% } %>
-                <form method="POST" action="/register">
+                <form method="POST" action="/register" enctype="multipart/form-data">
                     <div class="mb-3">
                         <label for="username" class="form-label">Username</label>
                         <input type="text" class="form-control" id="username" name="username" required>
@@ -14,6 +14,10 @@
                     <div class="mb-3">
                         <label for="password" class="form-label">Password</label>
                         <input type="password" class="form-control" id="password" name="password" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="profile_picture" class="form-label">Profile Picture (Optional)</label>
+                        <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
                     </div>
                     <button type="submit" class="btn btn-primary w-100">Register</button>
                 </form>

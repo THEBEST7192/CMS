@@ -1,0 +1,33 @@
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Your Profile</h2>
+                <div class="row">
+                    <div class="col-md-4 text-center mb-4">
+                        <% if (userInfo.profile_picture) { %>
+                            <img src="<%= userInfo.profile_picture %>" alt="Profile Picture" class="img-fluid rounded-circle" style="max-width: 150px; max-height: 150px; object-fit: cover;">
+                        <% } else { %>
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center mx-auto" style="width: 150px; height: 150px;">
+                                <span class="text-white display-4"><%= userInfo.username.charAt(0).toUpperCase() %></span>
+                            </div>
+                        <% } %>
+                    </div>
+                    <div class="col-md-8">
+                        <h4><%= userInfo.username %></h4>
+                        <p><strong>Role:</strong> <%= userInfo.role %></p>
+                        <p><strong>Joined:</strong> <%= new Date(userInfo.created_at).toLocaleString() %></p>
+                        
+                        <form action="/profile" method="POST" enctype="multipart/form-data">
+                            <div class="mb-3">
+                                <label for="profile_picture" class="form-label">Update Profile Picture</label>
+                                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update Profile</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

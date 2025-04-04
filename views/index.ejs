@@ -1,22 +1,82 @@
 <div class="row">
     <% items.forEach(function(item) { %>
-        <div class="col-md-4">
+        <div class="col-md-6 mb-4">
             <div class="card">
                 <div class="card-body">
-                    <h5 class="card-title"><%= item.title %></h5>
+                    <div class="d-flex align-items-center mb-3">
+                        <% if (item.profile_picture) { %>
+                            <img src="<%= item.profile_picture %>" alt="Author" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                        <% } else { %>
+                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
+                                <span class="text-white"><%= item.author ? item.author.charAt(0).toUpperCase() : 'U' %></span>
+                            </div>
+                        <% } %>
+                        <div>
+                            <h5 class="card-title mb-0"><%= item.title %></h5>
+                            <small class="text-muted">Posted by <%= item.author || 'Unknown' %></small>
+                        </div>
+                    </div>
+                    
                     <p class="card-text"><%= item.content %></p>
-                    <% if (locals.user) { %>
-                        <form action="/vote/<%= item.id %>" method="POST" class="d-inline">
-                            <button type="submit" class="btn btn-primary">
-                                <% if (item.hasVoted) { %>
-                                    Unvote
-                                <% } else { %>
-                                    Vote
-                                <% } %>
-                            </button>
-                        </form>
-                    <% } %>
-                    <span class="badge bg-secondary"><%= item.vote_count || 0 %> votes</span>
+                    
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <% if (locals.user) { %>
+                            <form action="/vote/<%= item.id %>" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-sm <%= item.hasVoted ? 'btn-primary' : 'btn-outline-primary' %>">
+                                    <i class="bi bi-hand-thumbs-up<%= item.hasVoted ? '-fill' : '' %>"></i>
+                                    <%= item.hasVoted ? 'Unvote' : 'Vote' %>
+                                </button>
+                            </form>
+                        <% } else { %>
+                            <span class="text-muted">Login to vote</span>
+                        <% } %>
+                        <span class="badge bg-secondary"><%= item.vote_count || 0 %> votes</span>
+                    </div>
+                    
+                    <!-- Comments Section -->
+                    <div class="mt-4">
+                        <h6 class="border-bottom pb-2 mb-3">Comments (<%= item.comments ? item.comments.length : 0 %>)</h6>
+                        
+                        <% if (item.comments && item.comments.length > 0) { %>
+                            <div class="comments-list mb-3">
+                                <% item.comments.forEach(function(comment) { %>
+                                    <div class="comment d-flex mb-3">
+                                        <% if (comment.profile_picture) { %>
+                                            <img src="<%= comment.profile_picture %>" alt="Commenter" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;">
+                                        <% } else { %>
+                                            <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                                                <span class="text-white"><%= comment.username ? comment.username.charAt(0).toUpperCase() : 'U' %></span>
+                                            </div>
+                                        <% } %>
+                                        <div class="flex-grow-1">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <strong><%= comment.username %></strong>
+                                                <small class="text-muted"><%= new Date(comment.created_at).toLocaleString() %></small>
+                                            </div>
+                                            <p class="mb-1"><%= comment.content %></p>
+                                            
+                                            <% if (locals.user && (locals.user.role === 'admin' || locals.user.id === comment.user_id)) { %>
+                                                <form action="/comment/delete/<%= comment.id %>" method="POST" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0">Delete</button>
+                                                </form>
+                                            <% } %>
+                                        </div>
+                                    </div>
+                                <% }); %>
+                            </div>
+                        <% } %>
+                        
+                        <% if (locals.user) { %>
+                            <form action="/comment/<%= item.id %>" method="POST">
+                                <div class="input-group">
+                                    <input type="text" class="form-control" name="content" placeholder="Add a comment..." required>
+                                    <button type="submit" class="btn btn-primary">Post</button>
+                                </div>
+                            </form>
+                        <% } else { %>
+                            <p class="text-muted small">Please <a href="/login">login</a> to comment</p>
+                        <% } %>
+                    </div>
                 </div>
             </div>
         </div>

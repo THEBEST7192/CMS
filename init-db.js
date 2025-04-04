@@ -14,6 +14,7 @@ async function initializeDatabase() {
         console.log('Connected to database');
 
         // Drop existing tables in reverse order of dependencies
+        await connection.query('DROP TABLE IF EXISTS comments');
         await connection.query('DROP TABLE IF EXISTS votes');
         await connection.query('DROP TABLE IF EXISTS items');
         await connection.query('DROP TABLE IF EXISTS users');
@@ -27,6 +28,7 @@ async function initializeDatabase() {
                 password VARCHAR(255) NOT NULL,
                 role ENUM('user', 'admin') DEFAULT 'user',
                 approved BOOLEAN DEFAULT FALSE,
+                profile_picture VARCHAR(255) DEFAULT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
@@ -59,6 +61,20 @@ async function initializeDatabase() {
             )
         `);
         console.log('Votes table created');
+
+        // Create comments table
+        await connection.query(`
+            CREATE TABLE IF NOT EXISTS comments (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                content TEXT NOT NULL,
+                item_id INT NOT NULL,
+                user_id INT NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (item_id) REFERENCES items(id),
+                FOREIGN KEY (user_id) REFERENCES users(id)
+            )
+        `);
+        console.log('Comments table created');
 
         await connection.end();
         console.log('Database initialization completed');
