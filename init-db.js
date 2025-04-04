@@ -1,87 +1,96 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
 
 async function initializeDatabase() {
-    try {
-        // Connect directly to the database
-        const connection = await mysql.createConnection({
-            host: process.env.DB_HOST,
-            user: process.env.DB_USER,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME
-        });
+  try {
+    const pool = mysql.createPool({
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || '',
+      database: process.env.DB_NAME || 'myphp',
+      waitForConnections: true,
+      connectionLimit: 10,
+      queueLimit: 0
+    });
 
-        console.log('Connected to database');
+    console.log('Connected to database');
 
-        // Drop existing tables in reverse order of dependencies
-        await connection.query('DROP TABLE IF EXISTS comments');
-        await connection.query('DROP TABLE IF EXISTS votes');
-        await connection.query('DROP TABLE IF EXISTS items');
-        await connection.query('DROP TABLE IF EXISTS users');
-        console.log('Dropped existing tables');
+    // Create users table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        username VARCHAR(255) NOT NULL UNIQUE,
+        password VARCHAR(255) NOT NULL,
+        approved BOOLEAN DEFAULT FALSE,
+        profile_picture LONGTEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `);
 
-        // Create users table
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                username VARCHAR(255) NOT NULL UNIQUE,
-                password VARCHAR(255) NOT NULL,
-                role ENUM('user', 'admin') DEFAULT 'user',
-                approved BOOLEAN DEFAULT FALSE,
-                profile_picture LONGTEXT DEFAULT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
-        console.log('Users table created');
+    console.log('Users table created');
 
-        // Create items table
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS items (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                title VARCHAR(255) NOT NULL,
-                content TEXT NOT NULL,
-                user_id INT NOT NULL,
-                approved BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        `);
-        console.log('Items table created');
+    // Create items table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        title VARCHAR(255) NOT NULL,
+        content TEXT NOT NULL,
+        user_id INT NOT NULL,
+        approved BOOLEAN DEFAULT FALSE,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
 
-        // Create votes table
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS votes (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                item_id INT NOT NULL,
-                user_id INT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (item_id) REFERENCES items(id),
-                FOREIGN KEY (user_id) REFERENCES users(id),
-                UNIQUE KEY unique_vote (item_id, user_id)
-            )
-        `);
-        console.log('Votes table created');
+    console.log('Items table created');
 
-        // Create comments table
-        await connection.query(`
-            CREATE TABLE IF NOT EXISTS comments (
-                id INT AUTO_INCREMENT PRIMARY KEY,
-                content TEXT NOT NULL,
-                item_id INT NOT NULL,
-                user_id INT NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (item_id) REFERENCES items(id),
-                FOREIGN KEY (user_id) REFERENCES users(id)
-            )
-        `);
-        console.log('Comments table created');
+    // Create votes table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS votes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        item_id INT NOT NULL,
+        user_id INT NOT NULL,
+        vote_type ENUM('upvote', 'downvote') NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE KEY unique_vote (item_id, user_id),
+        FOREIGN KEY (item_id) REFERENCES items(id),
+        FOREIGN KEY (user_id) REFERENCES users(id)
+      )
+    `);
 
-        await connection.end();
-        console.log('Database initialization completed');
-    } catch (error) {
-        console.error('Error initializing database:', error);
-        process.exit(1);
+    console.log('Votes table created');
+
+    // Create comments table if it doesn't exist
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        content TEXT NOT NULL,
+        user_id INT NOT NULL,
+        item_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (item_id) REFERENCES items(id)
+      )
+    `);
+
+    console.log('Comments table created');
+
+    // Create admin user if it doesn't exist
+    const [users] = await pool.query('SELECT * FROM users WHERE username = ?', ['admin']);
+    if (users.length === 0) {
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      await pool.query(
+        'INSERT INTO users (username, password, approved) VALUES (?, ?, ?)',
+        ['admin', hashedPassword, true]
+      );
+      console.log('Admin user created');
     }
+
+    console.log('Database initialization completed');
+  } catch (error) {
+    console.error('Database initialization error:', error);
+  }
 }
 
 initializeDatabase();

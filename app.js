@@ -455,11 +455,90 @@ app.post('/admin/delete-comment/:commentId', isAdmin, async (req, res) => {
   }
 });
 
+app.get('/admin/change-password/:userId', isAdmin, async (req, res) => {
+  const { userId } = req.params;
+  try {
+    const [users] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
+    if (users.length === 0) {
+      res.status(404).send('User not found');
+      return;
+    }
+    renderWithLayout(res, 'admin-change-password', { 
+      userId: userId, 
+      username: users[0].username 
+    });
+  } catch (error) {
+    console.error('Error fetching user:', error);
+    res.status(500).send('Error fetching user');
+  }
+});
+
+app.put('/admin/change-password/:userId', isAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const { newPassword, confirmPassword } = req.body;
+  
+  if (newPassword !== confirmPassword) {
+    renderWithLayout(res, 'admin-change-password', { 
+      userId: userId,
+      error: 'Passwords do not match' 
+    });
+    return;
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
+    res.redirect('/admin');
+  } catch (error) {
+    console.error('Error changing password:', error);
+    renderWithLayout(res, 'admin-change-password', { 
+      userId: userId,
+      error: 'Error changing password' 
+    });
+  }
+});
+
+app.post('/change-password', isAuthenticated, async (req, res) => {
+  const { currentPassword, newPassword, confirmPassword } = req.body;
+  
+  if (newPassword !== confirmPassword) {
+    res.redirect('/profile?error=Passwords do not match');
+    return;
+  }
+
+  try {
+    // Verify current password
+    const [users] = await pool.query('SELECT password FROM users WHERE id = ?', [req.session.user.id]);
+    const validPassword = await bcrypt.compare(currentPassword, users[0].password);
+    
+    if (!validPassword) {
+      res.redirect('/profile?error=Invalid current password');
+      return;
+    }
+
+    // Update password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.session.user.id]);
+    
+    // Invalidate current session
+    req.session.destroy(() => {
+      res.redirect('/login?message=Password changed successfully. Please log in again.');
+    });
+  } catch (error) {
+    console.error('Error changing password:', error);
+    res.redirect('/profile?error=Error changing password');
+  }
+});
+
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
 });
 
+// Initialize database
+require('./init-db');
+
+// Start server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);
 });
