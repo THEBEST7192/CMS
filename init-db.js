@@ -22,6 +22,7 @@ async function initializeDatabase() {
         id INT AUTO_INCREMENT PRIMARY KEY,
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
+        display_name VARCHAR(255),
         approved BOOLEAN DEFAULT FALSE,
         profile_picture LONGTEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -29,6 +30,14 @@ async function initializeDatabase() {
     `);
 
     console.log('Users table created');
+
+    // Update existing users to set display_name if not set
+    await pool.query(`
+      UPDATE users 
+      SET display_name = username 
+      WHERE display_name IS NULL OR display_name = ''
+    `);
+    console.log('Updated display names for existing users');
 
     // Create items table if it doesn't exist
     await pool.query(`

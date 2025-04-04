@@ -28,9 +28,8 @@ const storage = multer.diskStorage({
 // File filter for profile pictures
 const fileFilter = (req, file, cb) => {
   // Accept images only
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-    req.fileValidationError = 'Only image files are allowed!';
-    return cb(null, false);
+  if (!file.originalname.match(/\.(webp|jpg|jpeg|png)$/i)) {
+    return cb(new Error('Only WebP, JPG, and PNG files are allowed!'));
   }
   cb(null, true);
 };
@@ -96,6 +95,18 @@ const renderWithLayout = (res, view, data = {}) => {
   });
 };
 
+// Add display_name column to users table
+async function addDisplayNameColumn() {
+  try {
+    await pool.query(`
+      ALTER TABLE users 
+      ADD COLUMN IF NOT EXISTS display_name VARCHAR(255)
+    `);
+  } catch (error) {
+    console.error('Error adding display_name column:', error);
+  }
+}
+
 // Create admin user if it doesn't exist
 async function createAdminUser() {
   try {
@@ -115,12 +126,21 @@ async function createAdminUser() {
 
 createAdminUser();
 
+// Initialize database
+require('./init-db');
+
+// Add display name column
+addDisplayNameColumn();
+
 // Routes
 app.get('/', async (req, res) => {
   try {
     // Join with votes table to get vote counts and user information
     const [items] = await pool.query(`
-      SELECT i.*, COUNT(DISTINCT v.id) as vote_count, u.username as author, u.profile_picture
+      SELECT i.*, COUNT(DISTINCT v.id) as vote_count, 
+             u.username as author_username, 
+             u.display_name as author_display_name,
+             u.profile_picture as author_picture
       FROM items i 
       LEFT JOIN votes v ON i.id = v.item_id 
       LEFT JOIN users u ON i.user_id = u.id
@@ -132,7 +152,10 @@ app.get('/', async (req, res) => {
     // Get comments for each item
     for (const item of items) {
       const [comments] = await pool.query(`
-        SELECT c.*, u.username, u.profile_picture
+        SELECT c.*, 
+               u.username as commenter_username,
+               u.display_name as commenter_display_name,
+               u.profile_picture as commenter_picture
         FROM comments c
         LEFT JOIN users u ON c.user_id = u.id
         WHERE c.item_id = ?
@@ -144,13 +167,12 @@ app.get('/', async (req, res) => {
     
     // If user is logged in, check which items they have voted on
     if (req.session.user) {
-      const [userVotes] = await pool.query(
+      const [votedItems] = await pool.query(
         'SELECT item_id FROM votes WHERE user_id = ?',
         [req.session.user.id]
       );
       
-      // Create a set of item IDs the user has voted on for faster lookup
-      const votedItemIds = new Set(userVotes.map(vote => vote.item_id));
+      const votedItemIds = new Set(votedItems.map(vote => vote.item_id));
       
       // Mark items as voted by the current user
       items.forEach(item => {
@@ -217,7 +239,8 @@ app.post('/login', async (req, res) => {
         id: user.id, 
         username, 
         role: user.role,
-        profile_picture: user.profile_picture
+        profile_picture: user.profile_picture,
+        display_name: user.display_name
       };
       res.redirect('/');
     } else {
@@ -231,11 +254,10 @@ app.post('/login', async (req, res) => {
 
 app.get('/profile', isAuthenticated, async (req, res) => {
   try {
-    const [userInfo] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
-    if (userInfo.length === 0) {
-      res.redirect('/logout');
-      return;
-    }
+    const [userInfo] = await pool.query(
+      'SELECT * FROM users WHERE id = ?', 
+      [req.session.user.id]
+    );
     
     renderWithLayout(res, 'profile', { 
       userInfo: userInfo[0],
@@ -247,25 +269,96 @@ app.get('/profile', isAuthenticated, async (req, res) => {
   }
 });
 
-app.post('/profile', isAuthenticated, async (req, res) => {
+app.post('/profile', isAuthenticated, upload.single('profilePictureInput'), async (req, res) => {
   try {
-    const { profilePicture } = req.body;
+    let profilePicture = '';
+    
+    if (req.file) {
+      // Convert the uploaded file to base64
+      const fileBuffer = fs.readFileSync(req.file.path);
+      const base64Image = fileBuffer.toString('base64');
+      profilePicture = `data:${req.file.mimetype};base64,${base64Image}`;
+      
+      // Clean up the temporary file
+      fs.unlinkSync(req.file.path);
+    }
     
     // Update profile picture in database
-    if (profilePicture) {
-      await pool.query(
-        'UPDATE users SET profile_picture = ? WHERE id = ?',
-        [profilePicture, req.session.user.id]
-      );
-      
-      // Update session
-      req.session.user.profile_picture = profilePicture;
+    await pool.query(
+      'UPDATE users SET profile_picture = ? WHERE id = ?',
+      [profilePicture, req.session.user.id]
+    );
+    
+    // Get updated user info
+    const [userInfo] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
+    
+    // Update session
+    req.session.user.profile_picture = userInfo[0].profile_picture;
+    
+    renderWithLayout(res, 'profile', { 
+      userInfo: userInfo[0],
+      user: req.session.user,
+      success: 'Profile picture updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating profile:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+app.post('/profile/display-name', isAuthenticated, async (req, res) => {
+  const { displayName } = req.body;
+  
+  try {
+    // Update display name in database
+    await pool.query('UPDATE users SET display_name = ? WHERE id = ?', [displayName, req.session.user.id]);
+    
+    // Update session
+    req.session.user.display_name = displayName;
+    
+    // Get updated user info
+    const [userInfo] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
+    
+    renderWithLayout(res, 'profile', { 
+      userInfo: userInfo[0],
+      user: req.session.user
+    });
+  } catch (error) {
+    console.error('Error updating display name:', error);
+    res.status(500).send('Server error');
+  }
+});
+
+// Handle password change
+app.post('/profile/change-password', isAuthenticated, async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  
+  try {
+    // Get user from database
+    const [users] = await pool.query('SELECT * FROM users WHERE id = ?', [req.session.user.id]);
+    const user = users[0];
+    
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).send('Current password is incorrect');
     }
+    
+    // Validate new password
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).send('New password must be at least 6 characters long');
+    }
+    
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update password in database
+    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.session.user.id]);
     
     res.redirect('/profile');
   } catch (error) {
-    console.error('Error updating profile:', error);
-    res.status(500).send('Error updating profile');
+    console.error('Error changing password:', error);
+    res.status(500).send('Server error');
   }
 });
 
@@ -312,22 +405,28 @@ app.post('/vote/:itemId', isAuthenticated, async (req, res) => {
 });
 
 // Comment routes
-app.post('/comment/:itemId', isAuthenticated, async (req, res) => {
-  const { itemId } = req.params;
-  const { content } = req.body;
-  
+app.post('/comment', isAuthenticated, async (req, res) => {
+  const { content, itemId } = req.body;
   try {
-    if (!content || content.trim() === '') {
-      res.redirect('/');
-      return;
-    }
-    
+    // Insert the comment
     await pool.query(
       'INSERT INTO comments (content, item_id, user_id) VALUES (?, ?, ?)',
       [content, itemId, req.session.user.id]
     );
     
-    res.redirect('/');
+    // Get updated comments with user info
+    const [comments] = await pool.query(`
+      SELECT c.*, 
+             u.username as commenter_username,
+             u.display_name as commenter_display_name,
+             u.profile_picture as commenter_picture
+      FROM comments c
+      LEFT JOIN users u ON c.user_id = u.id
+      WHERE c.item_id = ?
+      ORDER BY c.created_at ASC
+    `, [itemId]);
+    
+    res.json(comments);
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).send('Error adding comment');
@@ -361,9 +460,12 @@ app.get('/admin', isAdmin, async (req, res) => {
     const [pendingUsers] = await pool.query('SELECT * FROM users WHERE approved = 0');
     const [allUsers] = await pool.query('SELECT * FROM users');
     
-    // Get all items, not just pending ones
+    // Get all items with user info
     const [allItems] = await pool.query(`
-      SELECT i.*, COUNT(v.id) as vote_count, u.username as author 
+      SELECT i.*, COUNT(v.id) as vote_count, 
+             u.username as author_username,
+             u.display_name as author_display_name,
+             u.profile_picture as author_picture
       FROM items i 
       LEFT JOIN votes v ON i.id = v.item_id 
       LEFT JOIN users u ON i.user_id = u.id
@@ -371,12 +473,14 @@ app.get('/admin', isAdmin, async (req, res) => {
       ORDER BY i.approved ASC, i.created_at DESC
     `);
     
-    // Get all comments
+    // Get all comments with user info
     const [allComments] = await pool.query(`
-      SELECT c.*, u.username, i.title as item_title
+      SELECT c.*, 
+             u.username as commenter_username,
+             u.display_name as commenter_display_name,
+             u.profile_picture as commenter_picture
       FROM comments c
       JOIN users u ON c.user_id = u.id
-      JOIN items i ON c.item_id = i.id
       ORDER BY c.created_at DESC
     `);
     
@@ -455,78 +559,35 @@ app.post('/admin/delete-comment/:commentId', isAdmin, async (req, res) => {
   }
 });
 
-app.get('/admin/change-password/:userId', isAdmin, async (req, res) => {
+// Handle password reset by admin
+app.post('/admin/reset-password/:userId', isAdmin, async (req, res) => {
   const { userId } = req.params;
-  try {
-    const [users] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
-    if (users.length === 0) {
-      res.status(404).send('User not found');
-      return;
-    }
-    renderWithLayout(res, 'admin-change-password', { 
-      userId: userId, 
-      username: users[0].username 
-    });
-  } catch (error) {
-    console.error('Error fetching user:', error);
-    res.status(500).send('Error fetching user');
-  }
-});
-
-app.put('/admin/change-password/:userId', isAdmin, async (req, res) => {
-  const { userId } = req.params;
-  const { newPassword, confirmPassword } = req.body;
+  const { newPassword } = req.body;
   
-  if (newPassword !== confirmPassword) {
-    renderWithLayout(res, 'admin-change-password', { 
-      userId: userId,
-      error: 'Passwords do not match' 
-    });
-    return;
-  }
-
   try {
+    // Validate the new password
+    if (!newPassword || newPassword.length < 6) {
+      return res.status(400).send('Password must be at least 6 characters long');
+    }
+    
+    // Hash the new password
     const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    // Update the user's password
     await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, userId]);
-    res.redirect('/admin');
-  } catch (error) {
-    console.error('Error changing password:', error);
-    renderWithLayout(res, 'admin-change-password', { 
-      userId: userId,
-      error: 'Error changing password' 
-    });
-  }
-});
-
-app.post('/change-password', isAuthenticated, async (req, res) => {
-  const { currentPassword, newPassword, confirmPassword } = req.body;
-  
-  if (newPassword !== confirmPassword) {
-    res.redirect('/profile?error=Passwords do not match');
-    return;
-  }
-
-  try {
-    // Verify current password
-    const [users] = await pool.query('SELECT password FROM users WHERE id = ?', [req.session.user.id]);
-    const validPassword = await bcrypt.compare(currentPassword, users[0].password);
     
-    if (!validPassword) {
-      res.redirect('/profile?error=Invalid current password');
-      return;
-    }
-
-    // Update password
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await pool.query('UPDATE users SET password = ? WHERE id = ?', [hashedPassword, req.session.user.id]);
+    // Get the user's username
+    const [users] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
+    const user = users[0];
     
-    // Invalidate current session
-    req.session.destroy(() => {
-      res.redirect('/login?message=Password changed successfully. Please log in again.');
-    });
+    // Log the password reset for the admin
+    console.log(`Password reset for user ${user.username} (${userId})`);
+    
+    // Redirect back to admin page
+    res.redirect(req.query.next || '/admin');
   } catch (error) {
-    console.error('Error changing password:', error);
-    res.redirect('/profile?error=Error changing password');
+    console.error('Error resetting password:', error);
+    res.status(500).send('Server error');
   }
 });
 
@@ -534,9 +595,6 @@ app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
 });
-
-// Initialize database
-require('./init-db');
 
 // Start server
 app.listen(port, () => {
