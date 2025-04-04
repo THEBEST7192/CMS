@@ -80,8 +80,37 @@ createAdminUser();
 
 // Routes
 app.get('/', async (req, res) => {
-  const [items] = await pool.query('SELECT * FROM items WHERE approved = 1');
-  renderWithLayout(res, 'index', { items, user: req.session.user });
+  try {
+    // Join with votes table to get vote counts
+    const [items] = await pool.query(`
+      SELECT i.*, COUNT(v.id) as vote_count 
+      FROM items i 
+      LEFT JOIN votes v ON i.id = v.item_id 
+      WHERE i.approved = 1 
+      GROUP BY i.id
+    `);
+    
+    // If user is logged in, check which items they have voted on
+    if (req.session.user) {
+      const [userVotes] = await pool.query(
+        'SELECT item_id FROM votes WHERE user_id = ?',
+        [req.session.user.id]
+      );
+      
+      // Create a set of item IDs the user has voted on for faster lookup
+      const votedItemIds = new Set(userVotes.map(vote => vote.item_id));
+      
+      // Mark items as voted by the current user
+      items.forEach(item => {
+        item.hasVoted = votedItemIds.has(item.id);
+      });
+    }
+    
+    renderWithLayout(res, 'index', { items, user: req.session.user });
+  } catch (error) {
+    console.error('Error loading homepage:', error);
+    res.status(500).send('Server error');
+  }
 });
 
 app.get('/register', (req, res) => {
@@ -156,19 +185,59 @@ app.post('/submit', isAuthenticated, async (req, res) => {
 
 app.post('/vote/:itemId', isAuthenticated, async (req, res) => {
   const { itemId } = req.params;
-  await pool.query(
-    'INSERT INTO votes (item_id, user_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE created_at = NOW()',
-    [itemId, req.session.user.id]
-  );
-  res.redirect('/');
+  try {
+    // Check if user has already voted
+    const [existingVotes] = await pool.query(
+      'SELECT * FROM votes WHERE item_id = ? AND user_id = ?',
+      [itemId, req.session.user.id]
+    );
+    
+    if (existingVotes.length > 0) {
+      // If already voted, remove the vote
+      await pool.query(
+        'DELETE FROM votes WHERE item_id = ? AND user_id = ?',
+        [itemId, req.session.user.id]
+      );
+    } else {
+      // If not voted, add a vote
+      await pool.query(
+        'INSERT INTO votes (item_id, user_id) VALUES (?, ?)',
+        [itemId, req.session.user.id]
+      );
+    }
+    res.redirect('/');
+  } catch (error) {
+    console.error('Error processing vote:', error);
+    res.status(500).send('Error processing vote');
+  }
 });
 
 app.get('/admin', isAdmin, async (req, res) => {
   try {
     const [pendingUsers] = await pool.query('SELECT * FROM users WHERE approved = 0');
     const [allUsers] = await pool.query('SELECT * FROM users');
-    const [items] = await pool.query('SELECT * FROM items WHERE approved = 0');
-    renderWithLayout(res, 'admin', { pendingUsers, allUsers, items });
+    
+    // Get all items, not just pending ones
+    const [allItems] = await pool.query(`
+      SELECT i.*, COUNT(v.id) as vote_count, u.username as author 
+      FROM items i 
+      LEFT JOIN votes v ON i.id = v.item_id 
+      LEFT JOIN users u ON i.user_id = u.id
+      GROUP BY i.id
+      ORDER BY i.approved ASC, i.created_at DESC
+    `);
+    
+    // Separate pending and approved items
+    const pendingItems = allItems.filter(item => item.approved === 0);
+    const approvedItems = allItems.filter(item => item.approved === 1);
+    
+    renderWithLayout(res, 'admin', { 
+      pendingUsers, 
+      allUsers, 
+      pendingItems,
+      approvedItems,
+      user: req.session.user
+    });
   } catch (error) {
     console.error('Error loading admin page:', error);
     res.status(500).send('Server error');
