@@ -1,0 +1,18 @@
+<div class="row">
+    <% items.forEach(function(item) { %>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><%= item.title %></h5>
+                    <p class="card-text"><%= item.content %></p>
+                    <% if (locals.user) { %>
+                        <form action="/vote/<%= item.id %>" method="POST" class="d-inline">
+                            <button type="submit" class="btn btn-primary">Vote</button>
+                        </form>
+                    <% } %>
+                    <span class="badge bg-secondary"><%= item.votes || 0 %> votes</span>
+                </div>
+            </div>
+        </div>
+    <% }); %>
+</div>
