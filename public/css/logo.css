@@ -1,0 +1,25 @@
+.kattapult-logo {
+  font-weight: bold;
+  font-size: 1.5rem;
+  color: white;
+  display: flex;
+  align-items: center;
+}
+
+.logo-icon {
+  display: inline-block;
+  margin-right: 8px;
+  position: relative;
+  font-size: 1.6rem;
+}
+
+.logo-icon::before {
+  content: "🐱";
+}
+
+.logo-text {
+  background: -webkit-linear-gradient(#cdd1d3, #ffffff);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 700;
+} 

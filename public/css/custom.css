@@ -1,0 +1,128 @@
+:root {
+  --primary: #009d4f;         /* Primary green */
+  --primary-dark: #005650;    /* Dark green */
+  --light-gray: #cdd1d3;      /* Light gray */
+  --medium-gray: #6e7171;     /* Medium gray */
+  --dark-gray: #3b4544;       /* Dark gray/almost black */
+}
+
+/* Navigation and header styles */
+.navbar {
+  background-color: var(--primary-dark) !important;
+}
+
+.navbar-brand, .nav-link {
+  color: white !important;
+}
+
+.navbar-brand:hover, .nav-link:hover {
+  color: var(--light-gray) !important;
+}
+
+/* Button styles */
+.btn-primary {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-primary:hover, .btn-primary:focus {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+.btn-outline-primary {
+  color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-outline-primary:hover {
+  background-color: var(--primary) !important;
+  color: white !important;
+}
+
+.btn-success {
+  background-color: var(--primary) !important;
+  border-color: var(--primary) !important;
+}
+
+.btn-success:hover {
+  background-color: var(--primary-dark) !important;
+  border-color: var(--primary-dark) !important;
+}
+
+/* Card styles */
+.card-header {
+  background-color: var(--primary-dark) !important;
+  color: white !important;
+}
+
+/* Text colors */
+.text-primary {
+  color: var(--primary) !important;
+}
+
+/* Background colors */
+.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--medium-gray) !important;
+}
+
+/* Badge colors */
+.badge.bg-primary {
+  background-color: var(--primary) !important;
+}
+
+.badge.bg-success {
+  background-color: var(--primary) !important;
+}
+
+.badge.bg-warning {
+  background-color: var(--medium-gray) !important;
+  color: white !important;
+}
+
+/* Form controls */
+.form-control:focus {
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 0.25rem rgba(0, 157, 79, 0.25) !important;
+}
+
+/* Modal header */
+.modal-header {
+  background-color: var(--primary-dark) !important;
+  color: white !important;
+}
+
+/* Links */
+a {
+  color: var(--primary) !important;
+}
+
+a:hover {
+  color: var(--primary-dark) !important;
+}
+
+/* Footer */
+footer {
+  background-color: var(--dark-gray) !important;
+  color: white !important;
+}
+
+/* Table headers */
+.table thead {
+  background-color: var(--primary-dark) !important;
+  color: white !important;
+}
+
+/* Custom styling for comment containers */
+.comment-card {
+  border-left: 3px solid var(--primary) !important;
+}
+
+/* Dropdown menus */
+.dropdown-item.active, .dropdown-item:active {
+  background-color: var(--primary) !important;
+} 

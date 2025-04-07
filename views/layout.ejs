@@ -1,17 +1,33 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Content Management System</title>
+    <title>Kattapult</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐱</text></svg>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="/css/custom.css" rel="stylesheet">
+    <link href="/css/logo.css" rel="stylesheet">
     <style>
         .container { padding-top: 2rem; }
         .card { margin-bottom: 1rem; }
+        body {
+            background-color: #f8f9fa;
+        }
+        .navbar-brand {
+            font-weight: bold;
+            font-size: 1.5rem;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary mb-4">
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
         <div class="container">
-            <a class="navbar-brand" href="/">Content Management</a>
+            <a class="navbar-brand" href="/">
+                <div class="kattapult-logo">
+                    <span class="logo-icon"></span>
+                    <span class="logo-text">Kattapult</span>
+                </div>
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
@@ -67,6 +83,18 @@
     <div class="container">
         <%- content %>
     </div>
+    
+    <footer class="py-3 mt-5">
+        <div class="container text-center">
+            <div class="kattapult-logo mx-auto mb-2" style="width: fit-content;">
+                <span class="logo-icon"></span>
+                <span class="logo-text">Kattapult</span>
+            </div>
+            <p class="mb-1">&copy; <%= new Date().getFullYear() %> Kattapult. All rights reserved.</p>
+            <small>Share your ideas with the world.</small>
+        </div>
+    </footer>
+    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

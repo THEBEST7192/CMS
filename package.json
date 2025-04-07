@@ -1,7 +1,7 @@
 {
-  "name": "content-management-system",
+  "name": "kattapult",
   "version": "1.0.0",
-  "description": "A web application for content management with user roles",
+  "description": "Kattapult - A web application for content sharing with user roles",
   "main": "app.js",
   "scripts": {
     "start": "node app.js",
