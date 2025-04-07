@@ -1,9 +1,64 @@
 <div class="container">
     <h2 class="mb-4">Admin Panel</h2>
     
+    <% if (locals.error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <%= error %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    
+    <% if (locals.success) { %>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <%= success %>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <% } %>
+    
     <div class="row mb-5">
         <div class="col-12">
             <h3>User Management</h3>
+            
+            <!-- User Creation Form -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Create New User</h5>
+                </div>
+                <div class="card-body">
+                    <form action="/admin/create-user" method="POST">
+                        <div class="row">
+                            <div class="col-md-3 mb-3">
+                                <label for="username" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="displayName" class="form-label">Display Name</label>
+                                <input type="text" class="form-control" id="displayName" name="displayName">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="role" class="form-label">Role</label>
+                                <select class="form-select" id="role" name="role" required>
+                                    <option value="user">User</option>
+                                    <option value="trusted_user">Trusted User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" id="approved" name="approved" checked>
+                            <label class="form-check-label" for="approved">
+                                Approved (can login immediately)
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Create User</button>
+                    </form>
+                </div>
+            </div>
+            
             <div class="table-responsive">
                 <table class="table table-striped">
                     <thead>
@@ -18,7 +73,19 @@
                         <% allUsers.forEach(user => { %>
                             <tr>
                                 <td><%= user.display_name ? `${user.display_name} (@${user.username})` : user.username %></td>
-                                <td><%= user.role %></td>
+                                <td>
+                                    <% if (user.username === 'BobKåre') { %>
+                                        <span class="badge bg-primary">Super Admin</span>
+                                    <% } else { %>
+                                        <form action="/admin/update-role/<%= user.id %>" method="POST" style="display: inline;">
+                                            <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                                                <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
+                                                <option value="trusted_user" <%= user.role === 'trusted_user' ? 'selected' : '' %>>Trusted User</option>
+                                                <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                                            </select>
+                                        </form>
+                                    <% } %>
+                                </td>
                                 <td>
                                     <% if (user.approved) { %>
                                         <span class="badge bg-success">Approved</span>
@@ -69,8 +136,15 @@
                     <tbody>
                         <% allComments.forEach(function(comment) { %>
                             <tr>
-                                <td><%= comment.username %></td>
-                                <td><%= comment.item_title %></td>
+                                <td><%= comment.commenter_display_name ? `${comment.commenter_display_name} (@${comment.commenter_username})` : comment.commenter_username %></td>
+                                <td>
+                                    <% 
+                                    // Get the item title from the items array
+                                    const item = approvedItems.find(i => i.id === comment.item_id) || 
+                                                pendingItems.find(i => i.id === comment.item_id);
+                                    %>
+                                    <%= item ? item.title : 'Unknown Post' %>
+                                </td>
                                 <td><%= comment.content %></td>
                                 <td><%= new Date(comment.created_at).toLocaleString() %></td>
                                 <td>

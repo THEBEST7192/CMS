@@ -107,25 +107,6 @@ async function addDisplayNameColumn() {
   }
 }
 
-// Create admin user if it doesn't exist
-async function createAdminUser() {
-  try {
-    const [users] = await pool.query('SELECT * FROM users WHERE username = ?', ['BobKåre']);
-    if (users.length === 0) {
-      const hashedPassword = await bcrypt.hash('%@mcdxcc%/--%c%_/**cllfcbma', 10);
-      await pool.query(
-        'INSERT INTO users (username, password, role, approved) VALUES (?, ?, ?, ?)',
-        ['BobKåre', hashedPassword, 'admin', true]
-      );
-      console.log('Admin user created');
-    }
-  } catch (error) {
-    console.error('Error creating admin user:', error);
-  }
-}
-
-createAdminUser();
-
 // Initialize database
 require('./init-db');
 
@@ -368,9 +349,12 @@ app.get('/submit', isAuthenticated, (req, res) => {
 
 app.post('/submit', isAuthenticated, async (req, res) => {
   const { title, content } = req.body;
+  const isTrustedUser = req.session.user.role === 'trusted_user';
+  const isAdmin = req.session.user.role === 'admin';
+  
   await pool.query(
     'INSERT INTO items (title, content, user_id, approved) VALUES (?, ?, ?, ?)',
-    [title, content, req.session.user.id, req.session.user.role === 'admin' ? 1 : 0]
+    [title, content, req.session.user.id, isTrustedUser || isAdmin ? 1 : 0]
   );
   res.redirect('/');
 });
@@ -414,19 +398,8 @@ app.post('/comment', isAuthenticated, async (req, res) => {
       [content, itemId, req.session.user.id]
     );
     
-    // Get updated comments with user info
-    const [comments] = await pool.query(`
-      SELECT c.*, 
-             u.username as commenter_username,
-             u.display_name as commenter_display_name,
-             u.profile_picture as commenter_picture
-      FROM comments c
-      LEFT JOIN users u ON c.user_id = u.id
-      WHERE c.item_id = ?
-      ORDER BY c.created_at ASC
-    `, [itemId]);
-    
-    res.json(comments);
+    // Redirect back to the homepage
+    res.redirect('/');
   } catch (error) {
     console.error('Error adding comment:', error);
     res.status(500).send('Error adding comment');
@@ -494,7 +467,9 @@ app.get('/admin', isAdmin, async (req, res) => {
       pendingItems,
       approvedItems,
       allComments,
-      user: req.session.user
+      user: req.session.user,
+      error: req.query.error,
+      success: req.query.success
     });
   } catch (error) {
     console.error('Error loading admin page:', error);
@@ -504,14 +479,24 @@ app.get('/admin', isAdmin, async (req, res) => {
 
 app.post('/admin/approve/:itemId', isAdmin, async (req, res) => {
   const { itemId } = req.params;
-  await pool.query('UPDATE items SET approved = 1 WHERE id = ?', [itemId]);
-  res.redirect('/admin');
+  try {
+    await pool.query('UPDATE items SET approved = 1 WHERE id = ?', [itemId]);
+    res.redirect('/admin?success=Item approved successfully');
+  } catch (error) {
+    console.error('Error approving item:', error);
+    res.redirect('/admin?error=Error approving item: ' + error.message);
+  }
 });
 
 app.post('/admin/approve-user/:userId', isAdmin, async (req, res) => {
   const { userId } = req.params;
-  await pool.query('UPDATE users SET approved = 1 WHERE id = ?', [userId]);
-  res.redirect('/admin');
+  try {
+    await pool.query('UPDATE users SET approved = 1 WHERE id = ?', [userId]);
+    res.redirect('/admin?success=User approved successfully');
+  } catch (error) {
+    console.error('Error approving user:', error);
+    res.redirect('/admin?error=Error approving user: ' + error.message);
+  }
 });
 
 app.post('/admin/delete-user/:userId', isAdmin, async (req, res) => {
@@ -525,10 +510,10 @@ app.post('/admin/delete-user/:userId', isAdmin, async (req, res) => {
     await pool.query('DELETE FROM items WHERE user_id = ?', [userId]);
     // Finally delete the user
     await pool.query('DELETE FROM users WHERE id = ? AND username != ?', [userId, 'BobKåre']);
-    res.redirect('/admin');
+    res.redirect('/admin?success=User deleted successfully');
   } catch (error) {
     console.error('Error deleting user:', error);
-    res.status(500).send('Error deleting user');
+    res.redirect('/admin?error=Error deleting user: ' + error.message);
   }
 });
 
@@ -541,10 +526,10 @@ app.post('/admin/delete-post/:itemId', isAdmin, async (req, res) => {
     await pool.query('DELETE FROM votes WHERE item_id = ?', [itemId]);
     // Then delete the item
     await pool.query('DELETE FROM items WHERE id = ?', [itemId]);
-    res.redirect('/admin');
+    res.redirect('/admin?success=Post deleted successfully');
   } catch (error) {
     console.error('Error deleting post:', error);
-    res.status(500).send('Error deleting post');
+    res.redirect('/admin?error=Error deleting post: ' + error.message);
   }
 });
 
@@ -552,10 +537,10 @@ app.post('/admin/delete-comment/:commentId', isAdmin, async (req, res) => {
   const { commentId } = req.params;
   try {
     await pool.query('DELETE FROM comments WHERE id = ?', [commentId]);
-    res.redirect('/admin');
+    res.redirect('/admin?success=Comment deleted successfully');
   } catch (error) {
     console.error('Error deleting comment:', error);
-    res.status(500).send('Error deleting comment');
+    res.redirect('/admin?error=Error deleting comment: ' + error.message);
   }
 });
 
@@ -567,7 +552,7 @@ app.post('/admin/reset-password/:userId', isAdmin, async (req, res) => {
   try {
     // Validate the new password
     if (!newPassword || newPassword.length < 6) {
-      return res.status(400).send('Password must be at least 6 characters long');
+      return res.redirect('/admin?error=Password must be at least 6 characters long');
     }
     
     // Hash the new password
@@ -584,10 +569,65 @@ app.post('/admin/reset-password/:userId', isAdmin, async (req, res) => {
     console.log(`Password reset for user ${user.username} (${userId})`);
     
     // Redirect back to admin page
-    res.redirect(req.query.next || '/admin');
+    res.redirect('/admin?success=Password reset successfully');
   } catch (error) {
     console.error('Error resetting password:', error);
-    res.status(500).send('Server error');
+    res.redirect('/admin?error=Error resetting password: ' + error.message);
+  }
+});
+
+// Handle role updates by admin
+app.post('/admin/update-role/:userId', isAdmin, async (req, res) => {
+  const { userId } = req.params;
+  const { role } = req.body;
+  
+  try {
+    // Prevent changing BobKåre's role
+    const [users] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
+    if (users[0].username === 'BobKåre') {
+      return res.redirect('/admin?error=Cannot change super admin role');
+    }
+    
+    // Update the user's role
+    await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
+    res.redirect('/admin?success=User role updated successfully');
+  } catch (error) {
+    console.error('Error updating user role:', error);
+    res.redirect('/admin?error=Error updating user role: ' + error.message);
+  }
+});
+
+// Handle user creation by admin
+app.post('/admin/create-user', isAdmin, async (req, res) => {
+  const { username, password, displayName, role, approved } = req.body;
+  
+  try {
+    // Check if username already exists
+    const [existingUsers] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
+    if (existingUsers.length > 0) {
+      // Redirect back to admin with error message
+      return res.redirect('/admin?error=Username already exists');
+    }
+    
+    // Validate password
+    if (!password || password.length < 6) {
+      return res.redirect('/admin?error=Password must be at least 6 characters long');
+    }
+    
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    // Insert the new user
+    await pool.query(
+      'INSERT INTO users (username, password, display_name, role, approved) VALUES (?, ?, ?, ?, ?)',
+      [username, hashedPassword, displayName || username, role, approved === 'on' ? 1 : 0]
+    );
+    
+    // Redirect back to admin page with success message
+    res.redirect('/admin?success=User created successfully');
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.redirect('/admin?error=Server error: ' + error.message);
   }
 });
 

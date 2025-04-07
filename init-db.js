@@ -23,6 +23,7 @@ async function initializeDatabase() {
         username VARCHAR(255) NOT NULL UNIQUE,
         password VARCHAR(255) NOT NULL,
         display_name VARCHAR(255),
+        role ENUM('user', 'trusted_user', 'admin') DEFAULT 'user',
         approved BOOLEAN DEFAULT FALSE,
         profile_picture LONGTEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -84,17 +85,6 @@ async function initializeDatabase() {
     `);
 
     console.log('Comments table created');
-
-    // Create admin user if it doesn't exist
-    const [users] = await pool.query('SELECT * FROM users WHERE username = ?', ['admin']);
-    if (users.length === 0) {
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      await pool.query(
-        'INSERT INTO users (username, password, approved) VALUES (?, ?, ?)',
-        ['admin', hashedPassword, true]
-      );
-      console.log('Admin user created');
-    }
 
     console.log('Database initialization completed');
   } catch (error) {
