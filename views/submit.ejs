@@ -12,9 +12,100 @@
                         <label for="content" class="form-label">Content</label>
                         <textarea class="form-control" id="content" name="content" rows="4" required></textarea>
                     </div>
+                    
+                    <!-- GIF Search Section -->
+                    <div class="mb-3">
+                        <label for="gifSearch" class="form-label">Add a GIF (Optional)</label>
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control" id="gifSearch" placeholder="Search for GIFs...">
+                            <button class="btn btn-outline-secondary" type="button" id="searchGifBtn">Search</button>
+                        </div>
+                        <div id="gifResults" class="row mt-2 mb-2" style="max-height: 300px; overflow-y: auto;"></div>
+                        <input type="hidden" name="gifUrl" id="selectedGifUrl">
+                        <div id="selectedGif" class="mt-2 d-none">
+                            <div class="card">
+                                <div class="card-body">
+                                    <img id="selectedGifPreview" src="" class="img-fluid" alt="Selected GIF">
+                                    <button type="button" class="btn btn-sm btn-danger mt-2" id="removeGifBtn">Remove GIF</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="btn btn-primary">Submit</button>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('gifSearch');
+        const searchBtn = document.getElementById('searchGifBtn');
+        const resultsContainer = document.getElementById('gifResults');
+        const selectedGifUrl = document.getElementById('selectedGifUrl');
+        const selectedGif = document.getElementById('selectedGif');
+        const selectedGifPreview = document.getElementById('selectedGifPreview');
+        const removeGifBtn = document.getElementById('removeGifBtn');
+        
+        // Search for GIFs
+        searchBtn.addEventListener('click', async function() {
+            const searchTerm = searchInput.value.trim();
+            if (!searchTerm) return;
+            
+            try {
+                resultsContainer.innerHTML = '<div class="col-12 text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+                
+                const response = await fetch(`/api/search-gifs?query=${encodeURIComponent(searchTerm)}`);
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    resultsContainer.innerHTML = '';
+                    data.results.forEach(gif => {
+                        const gifUrl = gif.media_formats.gif.url;
+                        const previewUrl = gif.media_formats.tinygif.url;
+                        
+                        const col = document.createElement('div');
+                        col.className = 'col-md-4 col-6 mb-2';
+                        col.innerHTML = `
+                            <div class="card gif-card" style="cursor: pointer;">
+                                <img src="${previewUrl}" class="card-img-top" alt="GIF" loading="lazy" style="height: 100px; object-fit: cover;">
+                            </div>
+                        `;
+                        
+                        col.querySelector('.gif-card').addEventListener('click', function() {
+                            selectedGifUrl.value = gifUrl;
+                            selectedGifPreview.src = gifUrl;
+                            selectedGif.classList.remove('d-none');
+                            resultsContainer.innerHTML = '';
+                            searchInput.value = '';
+                        });
+                        
+                        resultsContainer.appendChild(col);
+                    });
+                } else {
+                    resultsContainer.innerHTML = '<div class="col-12"><p class="text-center">No GIFs found</p></div>';
+                }
+            } catch (error) {
+                console.error('Error searching for GIFs:', error);
+                resultsContainer.innerHTML = '<div class="col-12"><p class="text-center text-danger">Error searching for GIFs</p></div>';
+            }
+        });
+        
+        // Remove selected GIF
+        removeGifBtn.addEventListener('click', function() {
+            selectedGifUrl.value = '';
+            selectedGifPreview.src = '';
+            selectedGif.classList.add('d-none');
+        });
+        
+        // Allow searching by pressing Enter
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                searchBtn.click();
+            }
+        });
+    });
+</script>

@@ -145,7 +145,16 @@
                                     %>
                                     <%= item ? item.title : 'Unknown Post' %>
                                 </td>
-                                <td><%= comment.content %></td>
+                                <td>
+                                    <% if (comment.content && comment.content.trim() !== '') { %>
+                                        <%= comment.content %>
+                                    <% } %>
+                                    <% if (comment.gif_url) { %>
+                                        <div>
+                                            <img src="<%= comment.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 100px;">
+                                        </div>
+                                    <% } %>
+                                </td>
                                 <td><%= new Date(comment.created_at).toLocaleString() %></td>
                                 <td>
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCommentModal<%= comment.id %>">
@@ -170,8 +179,22 @@
                                             <div class="modal-body">
                                                 <div class="mb-3">
                                                     <label for="commentContent<%= comment.id %>" class="form-label">Comment Content</label>
-                                                    <textarea class="form-control" id="commentContent<%= comment.id %>" name="content" rows="3" required><%= comment.content %></textarea>
+                                                    <textarea class="form-control" id="commentContent<%= comment.id %>" name="content" rows="3"><%= comment.content %></textarea>
                                                 </div>
+                                                <% if (comment.gif_url) { %>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Current GIF</label>
+                                                        <div>
+                                                            <img src="<%= comment.gif_url %>" alt="Current GIF" class="img-fluid rounded" style="max-height: 200px;">
+                                                        </div>
+                                                        <div class="form-check mt-2">
+                                                            <input class="form-check-input" type="checkbox" id="keepGif<%= comment.id %>" name="keepGif" value="true" checked>
+                                                            <label class="form-check-label" for="keepGif<%= comment.id %>">
+                                                                Keep this GIF
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                <% } %>
                                             </div>
                                             <div class="modal-footer">
                                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -198,8 +221,13 @@
                             <div class="card-body">
                                 <h5 class="card-title"><%= item.title %></h5>
                                 <p class="card-text"><%= item.content %></p>
-                                <p class="text-muted">By: <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username || 'Unknown' %></p>
-                                <p class="text-muted">Votes: <%= item.vote_count %></p>
+                                <% if (item.gif_url) { %>
+                                    <div class="mb-3">
+                                        <img src="<%= item.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 150px;">
+                                    </div>
+                                <% } %>
+                                <p class="text-muted small">Posted by <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %></p>
+                                <p class="text-muted small">Votes: <%= item.vote_count %></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editPostModal<%= item.id %>">
                                         Edit
@@ -233,6 +261,20 @@
                                                 <label for="postContent<%= item.id %>" class="form-label">Content</label>
                                                 <textarea class="form-control" id="postContent<%= item.id %>" name="content" rows="5" required><%= item.content %></textarea>
                                             </div>
+                                            <% if (item.gif_url) { %>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Current GIF</label>
+                                                    <div>
+                                                        <img src="<%= item.gif_url %>" alt="Current GIF" class="img-fluid rounded" style="max-height: 200px;">
+                                                    </div>
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" id="keepGif<%= item.id %>" name="keepGif" value="true" checked>
+                                                        <label class="form-check-label" for="keepGif<%= item.id %>">
+                                                            Keep this GIF
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            <% } %>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -258,8 +300,13 @@
                             <div class="card-body">
                                 <h5 class="card-title"><%= item.title %></h5>
                                 <p class="card-text"><%= item.content %></p>
-                                <p class="text-muted">By: <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username || 'Unknown' %></p>
-                                <p class="text-muted">Votes: <%= item.vote_count %></p>
+                                <% if (item.gif_url) { %>
+                                    <div class="mb-3">
+                                        <img src="<%= item.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 150px;">
+                                    </div>
+                                <% } %>
+                                <p class="text-muted small">Posted by <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %></p>
+                                <p class="text-muted small">Votes: <%= item.vote_count %></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editApprovedPostModal<%= item.id %>">
                                         Edit
@@ -290,6 +337,20 @@
                                                 <label for="approvedPostContent<%= item.id %>" class="form-label">Content</label>
                                                 <textarea class="form-control" id="approvedPostContent<%= item.id %>" name="content" rows="5" required><%= item.content %></textarea>
                                             </div>
+                                            <% if (item.gif_url) { %>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Current GIF</label>
+                                                    <div>
+                                                        <img src="<%= item.gif_url %>" alt="Current GIF" class="img-fluid rounded" style="max-height: 200px;">
+                                                    </div>
+                                                    <div class="form-check mt-2">
+                                                        <input class="form-check-input" type="checkbox" id="keepGifApproved<%= item.id %>" name="keepGif" value="true" checked>
+                                                        <label class="form-check-label" for="keepGifApproved<%= item.id %>">
+                                                            Keep this GIF
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            <% } %>
                                         </div>
                                         <div class="modal-footer">
                                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -305,3 +366,41 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validate comment edit forms
+        const commentEditForms = document.querySelectorAll('form[action^="/admin/edit-comment/"]');
+        commentEditForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const contentTextarea = this.querySelector('textarea[name="content"]');
+                const keepGifCheckbox = this.querySelector('input[name="keepGif"]');
+                
+                // Allow submission if either text content is provided or GIF is kept
+                if (contentTextarea.value.trim() === '' && (!keepGifCheckbox || !keepGifCheckbox.checked)) {
+                    e.preventDefault();
+                    alert('Please provide either comment text or keep the GIF.');
+                }
+            });
+        });
+        
+        // Validate post edit forms
+        const postEditForms = document.querySelectorAll('form[action^="/admin/edit-post/"]');
+        postEditForms.forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const titleInput = this.querySelector('input[name="title"]');
+                const contentTextarea = this.querySelector('textarea[name="content"]');
+                
+                if (!titleInput.value.trim()) {
+                    e.preventDefault();
+                    alert('Please provide a title for the post.');
+                }
+                
+                if (!contentTextarea.value.trim()) {
+                    e.preventDefault();
+                    alert('Please provide content for the post.');
+                }
+            });
+        });
+    });
+</script>

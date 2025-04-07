@@ -6,6 +6,10 @@ const bcrypt = require('bcryptjs');
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const axios = require('axios');
+
+// Tenor API setup
+const TENOR_API_KEY = process.env.TENOR_API_KEY;
 
 // Ensure uploads directory exists
 const uploadDir = path.join(__dirname, 'public', 'uploads');
@@ -107,11 +111,35 @@ async function addDisplayNameColumn() {
   }
 }
 
+// Add GIF support to tables
+async function addGifSupport() {
+  try {
+    // Add gif_url column to items table
+    await pool.query(`
+      ALTER TABLE items
+      ADD COLUMN IF NOT EXISTS gif_url VARCHAR(1024)
+    `);
+    
+    // Add gif_url column to comments table
+    await pool.query(`
+      ALTER TABLE comments
+      ADD COLUMN IF NOT EXISTS gif_url VARCHAR(1024)
+    `);
+    
+    console.log('GIF support added to database');
+  } catch (error) {
+    console.error('Error adding GIF support to database:', error);
+  }
+}
+
 // Initialize database
 require('./init-db');
 
 // Add display name column
 addDisplayNameColumn();
+
+// Add GIF support to tables
+addGifSupport();
 
 // Routes
 app.get('/', async (req, res) => {
@@ -353,13 +381,13 @@ app.get('/submit', isAuthenticated, (req, res) => {
 });
 
 app.post('/submit', isAuthenticated, async (req, res) => {
-  const { title, content } = req.body;
+  const { title, content, gifUrl } = req.body;
   const isTrustedUser = req.session.user.role === 'trusted_user';
   const isAdmin = req.session.user.role === 'admin';
   
   await pool.query(
-    'INSERT INTO items (title, content, user_id, approved) VALUES (?, ?, ?, ?)',
-    [title, content, req.session.user.id, isTrustedUser || isAdmin ? 1 : 0]
+    'INSERT INTO items (title, content, user_id, approved, gif_url) VALUES (?, ?, ?, ?, ?)',
+    [title, content, req.session.user.id, isTrustedUser || isAdmin ? 1 : 0, gifUrl || null]
   );
   res.redirect('/');
 });
@@ -396,12 +424,18 @@ app.post('/vote/:itemId', isAuthenticated, async (req, res) => {
 
 // Comment routes
 app.post('/comment', isAuthenticated, async (req, res) => {
-  const { content, itemId } = req.body;
+  const { content, itemId, gifUrl } = req.body;
+  
   try {
+    // Validate that at least one of content or gifUrl is provided
+    if ((!content || content.trim() === '') && !gifUrl) {
+      return res.redirect('/?error=Comments must contain either text or a GIF');
+    }
+    
     // Insert the comment
     await pool.query(
-      'INSERT INTO comments (content, item_id, user_id) VALUES (?, ?, ?)',
-      [content, itemId, req.session.user.id]
+      'INSERT INTO comments (content, item_id, user_id, gif_url) VALUES (?, ?, ?, ?)',
+      [content || '', itemId, req.session.user.id, gifUrl || null]
     );
     
     // Redirect back to the homepage
@@ -646,11 +680,22 @@ app.get('/logout', (req, res) => {
 // Handle post editing by admin
 app.post('/admin/edit-post/:itemId', isAdmin, async (req, res) => {
   const { itemId } = req.params;
-  const { title, content } = req.body;
+  const { title, content, keepGif } = req.body;
   
   try {
+    // Get the current post including gif_url
+    const [items] = await pool.query('SELECT gif_url FROM items WHERE id = ?', [itemId]);
+    
+    if (items.length === 0) {
+      return res.redirect('/admin?error=Post not found');
+    }
+    
+    const gifUrl = keepGif === 'true' ? items[0].gif_url : null;
+    
     // Update the post
-    await pool.query('UPDATE items SET title = ?, content = ? WHERE id = ?', [title, content, itemId]);
+    await pool.query('UPDATE items SET title = ?, content = ?, gif_url = ? WHERE id = ?', 
+                     [title, content, gifUrl, itemId]);
+                     
     res.redirect('/admin?success=Post updated successfully');
   } catch (error) {
     console.error('Error updating post:', error);
@@ -661,11 +706,20 @@ app.post('/admin/edit-post/:itemId', isAdmin, async (req, res) => {
 // Handle comment editing by admin
 app.post('/admin/edit-comment/:commentId', isAdmin, async (req, res) => {
   const { commentId } = req.params;
-  const { content } = req.body;
+  const { content, keepGif } = req.body;
   
   try {
+    // Get the current comment
+    const [comments] = await pool.query('SELECT gif_url FROM comments WHERE id = ?', [commentId]);
+    
+    if (comments.length === 0) {
+      return res.redirect('/admin?error=Comment not found');
+    }
+    
+    const gifUrl = keepGif === 'true' ? comments[0].gif_url : null;
+    
     // Update the comment
-    await pool.query('UPDATE comments SET content = ? WHERE id = ?', [content, commentId]);
+    await pool.query('UPDATE comments SET content = ?, gif_url = ? WHERE id = ?', [content, gifUrl, commentId]);
     res.redirect('/admin?success=Comment updated successfully');
   } catch (error) {
     console.error('Error updating comment:', error);
@@ -681,11 +735,11 @@ app.get('/roles', (req, res) => {
 // Handle post editing by user
 app.post('/post/edit/:itemId', isAuthenticated, async (req, res) => {
   const { itemId } = req.params;
-  const { title, content } = req.body;
+  const { title, content, keepGif } = req.body;
   
   try {
     // Check if the user is the author or an admin
-    const [items] = await pool.query('SELECT user_id FROM items WHERE id = ?', [itemId]);
+    const [items] = await pool.query('SELECT user_id, gif_url FROM items WHERE id = ?', [itemId]);
     
     if (items.length === 0) {
       return res.redirect('/?error=Post not found');
@@ -699,7 +753,10 @@ app.post('/post/edit/:itemId', isAuthenticated, async (req, res) => {
     }
     
     // Update the post
-    await pool.query('UPDATE items SET title = ?, content = ? WHERE id = ?', [title, content, itemId]);
+    const gifUrl = keepGif === 'true' ? item.gif_url : null;
+    await pool.query('UPDATE items SET title = ?, content = ?, gif_url = ? WHERE id = ?', 
+                     [title, content, gifUrl, itemId]);
+                     
     res.redirect('/?success=Post updated successfully');
   } catch (error) {
     console.error('Error updating post:', error);
@@ -743,11 +800,11 @@ app.post('/post/delete/:itemId', isAuthenticated, async (req, res) => {
 // Handle comment editing by user
 app.post('/comment/edit/:commentId', isAuthenticated, async (req, res) => {
   const { commentId } = req.params;
-  const { content } = req.body;
+  const { content, keepGif } = req.body;
   
   try {
     // Check if the user is the author or an admin
-    const [comments] = await pool.query('SELECT user_id FROM comments WHERE id = ?', [commentId]);
+    const [comments] = await pool.query('SELECT user_id, gif_url FROM comments WHERE id = ?', [commentId]);
     
     if (comments.length === 0) {
       return res.redirect('/?error=Comment not found');
@@ -760,12 +817,39 @@ app.post('/comment/edit/:commentId', isAuthenticated, async (req, res) => {
       return res.redirect('/?error=You do not have permission to edit this comment');
     }
     
+    const gifUrl = keepGif === 'true' ? comment.gif_url : null;
+    
     // Update the comment
-    await pool.query('UPDATE comments SET content = ? WHERE id = ?', [content, commentId]);
+    await pool.query('UPDATE comments SET content = ?, gif_url = ? WHERE id = ?', [content, gifUrl, commentId]);
     res.redirect('/?success=Comment updated successfully');
   } catch (error) {
     console.error('Error updating comment:', error);
     res.redirect('/?error=Error updating comment: ' + error.message);
+  }
+});
+
+// Tenor GIF search API
+app.get('/api/search-gifs', async (req, res) => {
+  try {
+    const { query, limit = 12 } = req.query;
+    
+    if (!query) {
+      return res.status(400).json({ error: 'Search query is required' });
+    }
+    
+    const response = await axios.get('https://tenor.googleapis.com/v2/search', {
+      params: {
+        q: query,
+        key: TENOR_API_KEY,
+        limit: limit,
+        media_filter: 'minimal'
+      }
+    });
+    
+    res.json(response.data);
+  } catch (error) {
+    console.error('Error searching GIFs:', error);
+    res.status(500).json({ error: 'Failed to search for GIFs' });
   }
 });
 
