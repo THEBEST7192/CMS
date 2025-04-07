@@ -974,7 +974,7 @@
         const searchBtn = document.getElementById(`${type}ContentSearchBtn`);
         const sortSelect = document.getElementById(`${type}ContentSortSelect`);
         const sortDirectionSelect = document.getElementById(`${type}ContentSortDirectionSelect`);
-        const clearFiltersBtn = document.getElementById(`${type}ContentFiltersBtn`);
+        const clearFiltersBtn = document.getElementById(`clear${type.charAt(0).toUpperCase() + type.slice(1)}ContentFiltersBtn`);
         const contentContainer = document.getElementById(`${type}ContentContainer`);
         const contentCards = contentContainer.querySelectorAll('.content-card');
         
