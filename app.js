@@ -193,7 +193,11 @@ app.get('/', async (req, res) => {
       items, 
       user: req.session.user,
       error: req.query.error,
-      success: req.query.success
+      success: req.query.success,
+      translations: {
+        deleteConfirmation: "Are you sure you want to delete this post? This action cannot be undone.",
+        deleteCommentConfirmation: "Are you sure you want to delete this comment?"
+      }
     });
   } catch (error) {
     console.error('Error loading homepage:', error);
@@ -210,7 +214,7 @@ app.post('/register', async (req, res) => {
   try {
     const [existingUsers] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
     if (existingUsers.length > 0) {
-      renderWithLayout(res, 'register', { error: 'Username already exists' });
+      renderWithLayout(res, 'register', { error: 'usernameExists' });
       return;
     }
 
@@ -221,10 +225,10 @@ app.post('/register', async (req, res) => {
       'INSERT INTO users (username, password, approved, profile_picture) VALUES (?, ?, ?, ?)',
       [username, hashedPassword, false, profilePicture]
     );
-    renderWithLayout(res, 'login', { message: 'Registration successful! Please wait for admin approval before logging in.' });
+    renderWithLayout(res, 'login', { message: 'registrationSuccessful' });
   } catch (error) {
     console.error('Registration error:', error);
-    renderWithLayout(res, 'register', { error: 'Registration failed' });
+    renderWithLayout(res, 'register', { error: 'registrationFailed' });
   }
 });
 
@@ -238,13 +242,13 @@ app.post('/login', async (req, res) => {
     const [users] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
     
     if (users.length === 0) {
-      renderWithLayout(res, 'login', { error: 'Invalid credentials' });
+      renderWithLayout(res, 'login', { error: 'invalidCredentials' });
       return;
     }
 
     const user = users[0];
     if (!user.approved) {
-      renderWithLayout(res, 'login', { error: 'Your account is pending approval' });
+      renderWithLayout(res, 'login', { error: 'pendingApproval' });
       return;
     }
 
@@ -258,11 +262,11 @@ app.post('/login', async (req, res) => {
       };
       res.redirect('/');
     } else {
-      renderWithLayout(res, 'login', { error: 'Invalid credentials' });
+      renderWithLayout(res, 'login', { error: 'invalidCredentials' });
     }
   } catch (error) {
     console.error('Login error:', error);
-    renderWithLayout(res, 'login', { error: 'Login failed' });
+    renderWithLayout(res, 'login', { error: 'loginFailed' });
   }
 });
 
@@ -407,18 +411,18 @@ app.post('/vote/:itemId', isAuthenticated, async (req, res) => {
         'DELETE FROM votes WHERE item_id = ? AND user_id = ?',
         [itemId, req.session.user.id]
       );
-      res.redirect('/?success=Vote removed successfully');
+      res.redirect('/?success=voteRemoved');
     } else {
       // If not voted, add a vote
       await pool.query(
         'INSERT INTO votes (item_id, user_id) VALUES (?, ?)',
         [itemId, req.session.user.id]
       );
-      res.redirect('/?success=Vote added successfully');
+      res.redirect('/?success=voteAdded');
     }
   } catch (error) {
     console.error('Error processing vote:', error);
-    res.redirect('/?error=Error processing vote: ' + error.message);
+    res.redirect('/?error=errorProcessingVote');
   }
 });
 
@@ -429,7 +433,7 @@ app.post('/comment', isAuthenticated, async (req, res) => {
   try {
     // Validate that at least one of content or gifUrl is provided
     if ((!content || content.trim() === '') && !gifUrl) {
-      return res.redirect('/?error=Comments must contain either text or a GIF');
+      return res.redirect('/?error=commentMustContain');
     }
     
     // Insert the comment
@@ -439,10 +443,10 @@ app.post('/comment', isAuthenticated, async (req, res) => {
     );
     
     // Redirect back to the homepage
-    res.redirect('/?success=Comment added successfully');
+    res.redirect('/?success=commentAdded');
   } catch (error) {
     console.error('Error adding comment:', error);
-    res.redirect('/?error=Error adding comment: ' + error.message);
+    res.redirect('/?error=errorAddingComment');
   }
 });
 
@@ -461,10 +465,10 @@ app.post('/comment/delete/:commentId', isAuthenticated, async (req, res) => {
       );
     }
     
-    res.redirect('/?success=Comment deleted successfully');
+    res.redirect('/?success=commentDeleted');
   } catch (error) {
     console.error('Error deleting comment:', error);
-    res.redirect('/?error=Error deleting comment: ' + error.message);
+    res.redirect('/?error=errorDeletingComment');
   }
 });
 
@@ -522,10 +526,10 @@ app.post('/admin/approve/:itemId', isAdmin, async (req, res) => {
   const { itemId } = req.params;
   try {
     await pool.query('UPDATE items SET approved = 1 WHERE id = ?', [itemId]);
-    res.redirect('/admin?success=Item approved successfully');
+    res.redirect('/admin?success=postApproved');
   } catch (error) {
     console.error('Error approving item:', error);
-    res.redirect('/admin?error=Error approving item: ' + error.message);
+    res.redirect('/admin?error=errorApprovingPost');
   }
 });
 
@@ -538,17 +542,17 @@ app.post('/admin/approve-user/:userId', isAdmin, async (req, res) => {
     const [userCheck] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
     if (userCheck.length === 0) {
       console.error(`User with ID ${userId} not found`);
-      return res.redirect('/admin?error=User not found');
+      return res.redirect('/admin?error=userNotFound');
     }
     
     // Update the user's approval status
     const result = await pool.query('UPDATE users SET approved = 1 WHERE id = ?', [userId]);
     console.log('Update result:', result);
     
-    res.redirect('/admin?success=User approved successfully');
+    res.redirect('/admin?success=userApproved');
   } catch (error) {
     console.error(`Error approving user ${userId}:`, error);
-    res.redirect('/admin?error=Error approving user: ' + error.message);
+    res.redirect('/admin?error=errorApprovingUser');
   }
 });
 
@@ -562,23 +566,23 @@ app.post('/admin/unapprove-user/:userId', isAdmin, async (req, res) => {
     const [userCheck] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
     if (userCheck.length === 0) {
       console.error(`User with ID ${userId} not found`);
-      return res.redirect('/admin?error=User not found');
+      return res.redirect('/admin?error=userNotFound');
     }
     
     // Prevent unapproving BobKåre
     if (userCheck[0].username === 'BobKåre') {
       console.log('Attempted to unapprove super admin BobKåre');
-      return res.redirect('/admin?error=Cannot unapprove super admin');
+      return res.redirect('/admin?error=cannotUnapproveAdmin');
     }
     
     // Update the user's approval status
     const result = await pool.query('UPDATE users SET approved = 0 WHERE id = ?', [userId]);
     console.log('Update result:', result);
     
-    res.redirect('/admin?success=User unapproved successfully');
+    res.redirect('/admin?success=userUnapproved');
   } catch (error) {
     console.error(`Error unapproving user ${userId}:`, error);
-    res.redirect('/admin?error=Error unapproving user: ' + error.message);
+    res.redirect('/admin?error=errorUnapproving');
   }
 });
 
@@ -593,10 +597,10 @@ app.post('/admin/delete-user/:userId', isAdmin, async (req, res) => {
     await pool.query('DELETE FROM items WHERE user_id = ?', [userId]);
     // Finally delete the user
     await pool.query('DELETE FROM users WHERE id = ? AND username != ?', [userId, 'BobKåre']);
-    res.redirect('/admin?success=User deleted successfully');
+    res.redirect('/admin?success=userDeleted');
   } catch (error) {
     console.error('Error deleting user:', error);
-    res.redirect('/admin?error=Error deleting user: ' + error.message);
+    res.redirect('/admin?error=errorDeletingUser');
   }
 });
 
@@ -609,10 +613,10 @@ app.post('/admin/delete-post/:itemId', isAdmin, async (req, res) => {
     await pool.query('DELETE FROM votes WHERE item_id = ?', [itemId]);
     // Then delete the item
     await pool.query('DELETE FROM items WHERE id = ?', [itemId]);
-    res.redirect('/admin?success=Post deleted successfully');
+    res.redirect('/admin?success=postDeleted');
   } catch (error) {
     console.error('Error deleting post:', error);
-    res.redirect('/admin?error=Error deleting post: ' + error.message);
+    res.redirect('/admin?error=errorDeletingPost');
   }
 });
 
@@ -620,10 +624,10 @@ app.post('/admin/delete-comment/:commentId', isAdmin, async (req, res) => {
   const { commentId } = req.params;
   try {
     await pool.query('DELETE FROM comments WHERE id = ?', [commentId]);
-    res.redirect('/admin?success=Comment deleted successfully');
+    res.redirect('/admin?success=commentDeleted');
   } catch (error) {
     console.error('Error deleting comment:', error);
-    res.redirect('/admin?error=Error deleting comment: ' + error.message);
+    res.redirect('/admin?error=errorDeletingComment');
   }
 });
 
@@ -635,7 +639,7 @@ app.post('/admin/reset-password/:userId', isAdmin, async (req, res) => {
   try {
     // Validate the new password
     if (!newPassword || newPassword.length < 6) {
-      return res.redirect('/admin?error=Password must be at least 6 characters long');
+      return res.redirect('/admin?error=passwordMinLength');
     }
     
     // Hash the new password
@@ -652,10 +656,10 @@ app.post('/admin/reset-password/:userId', isAdmin, async (req, res) => {
     console.log(`Password reset for user ${user.username} (${userId})`);
     
     // Redirect back to admin page
-    res.redirect('/admin?success=Password reset successfully');
+    res.redirect('/admin?success=passwordResetSuccess');
   } catch (error) {
     console.error('Error resetting password:', error);
-    res.redirect('/admin?error=Error resetting password: ' + error.message);
+    res.redirect('/admin?error=errorResettingPassword');
   }
 });
 
@@ -668,15 +672,15 @@ app.post('/admin/update-role/:userId', isAdmin, async (req, res) => {
     // Prevent changing BobKåre's role
     const [users] = await pool.query('SELECT username FROM users WHERE id = ?', [userId]);
     if (users[0].username === 'BobKåre') {
-      return res.redirect('/admin?error=Cannot change super admin role');
+      return res.redirect('/admin?error=cannotChangeAdminRole');
     }
     
     // Update the user's role
     await pool.query('UPDATE users SET role = ? WHERE id = ?', [role, userId]);
-    res.redirect('/admin?success=User role updated successfully');
+    res.redirect('/admin?success=userRoleUpdated');
   } catch (error) {
     console.error('Error updating user role:', error);
-    res.redirect('/admin?error=Error updating user role: ' + error.message);
+    res.redirect('/admin?error=errorUpdatingRole');
   }
 });
 
@@ -689,12 +693,12 @@ app.post('/admin/create-user', isAdmin, async (req, res) => {
     const [existingUsers] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
     if (existingUsers.length > 0) {
       // Redirect back to admin with error message
-      return res.redirect('/admin?error=Username already exists');
+      return res.redirect('/admin?error=usernameExists');
     }
     
     // Validate password
     if (!password || password.length < 6) {
-      return res.redirect('/admin?error=Password must be at least 6 characters long');
+      return res.redirect('/admin?error=passwordMinLength');
     }
     
     // Hash the password
@@ -707,10 +711,10 @@ app.post('/admin/create-user', isAdmin, async (req, res) => {
     );
     
     // Redirect back to admin page with success message
-    res.redirect('/admin?success=User created successfully');
+    res.redirect('/admin?success=userCreated');
   } catch (error) {
     console.error('Error creating user:', error);
-    res.redirect('/admin?error=Server error: ' + error.message);
+    res.redirect('/admin?error=errorCreatingUser');
   }
 });
 
@@ -729,7 +733,7 @@ app.post('/admin/edit-post/:itemId', isAdmin, async (req, res) => {
     const [items] = await pool.query('SELECT gif_url FROM items WHERE id = ?', [itemId]);
     
     if (items.length === 0) {
-      return res.redirect('/admin?error=Post not found');
+      return res.redirect('/admin?error=postNotFound');
     }
     
     const gifUrl = keepGif === 'true' ? items[0].gif_url : null;
@@ -738,10 +742,10 @@ app.post('/admin/edit-post/:itemId', isAdmin, async (req, res) => {
     await pool.query('UPDATE items SET title = ?, content = ?, gif_url = ? WHERE id = ?', 
                      [title, content, gifUrl, itemId]);
                      
-    res.redirect('/admin?success=Post updated successfully');
+    res.redirect('/admin?success=postUpdated');
   } catch (error) {
     console.error('Error updating post:', error);
-    res.redirect('/admin?error=Error updating post: ' + error.message);
+    res.redirect('/admin?error=errorUpdatingPost');
   }
 });
 
@@ -755,17 +759,17 @@ app.post('/admin/edit-comment/:commentId', isAdmin, async (req, res) => {
     const [comments] = await pool.query('SELECT gif_url FROM comments WHERE id = ?', [commentId]);
     
     if (comments.length === 0) {
-      return res.redirect('/admin?error=Comment not found');
+      return res.redirect('/admin?error=commentNotFound');
     }
     
     const gifUrl = keepGif === 'true' ? comments[0].gif_url : null;
     
     // Update the comment
     await pool.query('UPDATE comments SET content = ?, gif_url = ? WHERE id = ?', [content, gifUrl, commentId]);
-    res.redirect('/admin?success=Comment updated successfully');
+    res.redirect('/admin?success=commentUpdated');
   } catch (error) {
     console.error('Error updating comment:', error);
-    res.redirect('/admin?error=Error updating comment: ' + error.message);
+    res.redirect('/admin?error=errorUpdatingComment');
   }
 });
 
@@ -784,14 +788,14 @@ app.post('/post/edit/:itemId', isAuthenticated, async (req, res) => {
     const [items] = await pool.query('SELECT user_id, gif_url FROM items WHERE id = ?', [itemId]);
     
     if (items.length === 0) {
-      return res.redirect('/?error=Post not found');
+      return res.redirect('/?error=postNotFound');
     }
     
     const item = items[0];
     
     // Only allow the author or an admin to edit
     if (item.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
-      return res.redirect('/?error=You do not have permission to edit this post');
+      return res.redirect('/?error=notPermitted');
     }
     
     // Update the post
@@ -799,10 +803,10 @@ app.post('/post/edit/:itemId', isAuthenticated, async (req, res) => {
     await pool.query('UPDATE items SET title = ?, content = ?, gif_url = ? WHERE id = ?', 
                      [title, content, gifUrl, itemId]);
                      
-    res.redirect('/?success=Post updated successfully');
+    res.redirect('/?success=postUpdated');
   } catch (error) {
     console.error('Error updating post:', error);
-    res.redirect('/?error=Error updating post: ' + error.message);
+    res.redirect('/?error=errorUpdatingPost');
   }
 });
 
@@ -815,14 +819,14 @@ app.post('/post/delete/:itemId', isAuthenticated, async (req, res) => {
     const [items] = await pool.query('SELECT user_id FROM items WHERE id = ?', [itemId]);
     
     if (items.length === 0) {
-      return res.redirect('/?error=Post not found');
+      return res.redirect('/?error=postNotFound');
     }
     
     const item = items[0];
     
     // Only allow the author or an admin to delete
     if (item.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
-      return res.redirect('/?error=You do not have permission to delete this post');
+      return res.redirect('/?error=notPermitted');
     }
     
     // First delete all comments for this item
@@ -832,10 +836,10 @@ app.post('/post/delete/:itemId', isAuthenticated, async (req, res) => {
     // Then delete the item
     await pool.query('DELETE FROM items WHERE id = ?', [itemId]);
     
-    res.redirect('/?success=Post deleted successfully');
+    res.redirect('/?success=postDeleted');
   } catch (error) {
     console.error('Error deleting post:', error);
-    res.redirect('/?error=Error deleting post: ' + error.message);
+    res.redirect('/?error=errorDeletingPost');
   }
 });
 
@@ -849,24 +853,24 @@ app.post('/comment/edit/:commentId', isAuthenticated, async (req, res) => {
     const [comments] = await pool.query('SELECT user_id, gif_url FROM comments WHERE id = ?', [commentId]);
     
     if (comments.length === 0) {
-      return res.redirect('/?error=Comment not found');
+      return res.redirect('/?error=commentNotFound');
     }
     
     const comment = comments[0];
     
     // Only allow the author or an admin to edit
     if (comment.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
-      return res.redirect('/?error=You do not have permission to edit this comment');
+      return res.redirect('/?error=notPermitted');
     }
     
     const gifUrl = keepGif === 'true' ? comment.gif_url : null;
     
     // Update the comment
     await pool.query('UPDATE comments SET content = ?, gif_url = ? WHERE id = ?', [content, gifUrl, commentId]);
-    res.redirect('/?success=Comment updated successfully');
+    res.redirect('/?success=commentUpdated');
   } catch (error) {
     console.error('Error updating comment:', error);
-    res.redirect('/?error=Error updating comment: ' + error.message);
+    res.redirect('/?error=errorUpdatingComment');
   }
 });
 

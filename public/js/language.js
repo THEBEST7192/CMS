@@ -23,6 +23,32 @@ const translations = {
         saveChanges: "Save Changes",
         or: "or",
         
+        // Login/Register
+        loginTitle: "Login to Kattapult",
+        registerTitle: "Join Kattapult",
+        username: "Username",
+        password: "Password",
+        noAccount: "Don't have an account?",
+        registerHere: "Register here",
+        haveAccount: "Already have an account?",
+        loginHere: "Login here",
+        profilePictureOptional: "Profile Picture (Optional)",
+        
+        // Home page
+        postedBy: "Posted by",
+        postedOn: "on",
+        deletePost: "Delete Post",
+        showHideComments: "Show/Hide Comments",
+        commentPlaceholder: "Add a comment...",
+        searchGif: "Search for GIFs...",
+        searchBtn: "Search",
+        removeGif: "Remove GIF",
+        postComment: "Post Comment",
+        loginToComment: "Please",
+        toPostAndComment: "to comment and post.",
+        deleteConfirmation: "Are you sure you want to delete this post? This action cannot be undone.",
+        deleteCommentConfirmation: "Are you sure you want to delete this comment?",
+        
         // User Roles Page
         userRolesTitle: "Kattapult User Roles",
         userRolesIntro: "Learn about the different user roles on Kattapult",
@@ -73,6 +99,55 @@ const translations = {
         searchBtn: "Search",
         selectedGif: "Selected GIF:",
         removeGif: "Remove GIF",
+        noGifsFound: "No GIFs found",
+        gifSearchError: "Error searching for GIFs",
+        commentRequiredContent: "Please add either text or a GIF to your comment.",
+        
+        // Alerts
+        usernameExists: "Username already exists",
+        registrationSuccessful: "Registration successful! Please wait for admin approval before logging in.",
+        invalidCredentials: "Invalid credentials",
+        pendingApproval: "Your account is pending approval",
+        loginFailed: "Login failed",
+        registrationFailed: "Registration failed",
+        serverError: "Server error",
+        errorProcessingVote: "Error processing vote",
+        voteRemoved: "Vote removed successfully",
+        voteAdded: "Vote added successfully",
+        commentAdded: "Comment added successfully",
+        errorAddingComment: "Error adding comment",
+        commentDeleted: "Comment deleted successfully",
+        errorDeletingComment: "Error deleting comment",
+        postApproved: "Item approved successfully",
+        errorApprovingPost: "Error approving item",
+        userApproved: "User approved successfully",
+        userNotFound: "User not found",
+        userDeleted: "User deleted successfully",
+        errorDeletingUser: "Error deleting user",
+        postDeleted: "Post deleted successfully",
+        errorDeletingPost: "Error deleting post",
+        userUnapproved: "User unapproved successfully",
+        errorUnapproving: "Error unapproving user",
+        cannotUnapproveAdmin: "Cannot unapprove super admin",
+        passwordResetSuccess: "Password reset successfully",
+        errorResettingPassword: "Error resetting password",
+        passwordMinLength: "Password must be at least 6 characters long",
+        userRoleUpdated: "User role updated successfully",
+        errorUpdatingRole: "Error updating user role",
+        cannotChangeAdminRole: "Cannot change super admin role",
+        userCreated: "User created successfully",
+        errorCreatingUser: "Error creating user",
+        postUpdated: "Post updated successfully",
+        errorUpdatingPost: "Error updating post",
+        commentUpdated: "Comment updated successfully",
+        errorUpdatingComment: "Error updating comment",
+        commentMustContain: "Comments must contain either text or a GIF",
+        postNotFound: "Post not found",
+        commentNotFound: "Comment not found",
+        notPermitted: "You do not have permission to perform this action",
+        errorApprovingUser: "Error approving user",
+        deleteUserConfirmation: "Are you sure you want to delete this user?",
+        deletePostConfirmation: "Are you sure you want to delete this post? This action cannot be undone.",
         
         // Comments
         comments: "Comments",
@@ -158,6 +233,32 @@ const translations = {
         saveChanges: "Lagre endringer",
         or: "eller",
         
+        // Login/Register
+        loginTitle: "Logg inn på Kattapult",
+        registerTitle: "Bli med på Kattapult",
+        username: "Brukernavn",
+        password: "Passord",
+        noAccount: "Har du ikke en konto?",
+        registerHere: "Registrer deg her",
+        haveAccount: "Har du allerede en konto?",
+        loginHere: "Logg inn her",
+        profilePictureOptional: "Profilbilde (Valgfritt)",
+        
+        // Home page
+        postedBy: "Skrevet av",
+        postedOn: "den",
+        deletePost: "Slett innlegg",
+        showHideComments: "Vis/Skjul kommentarer",
+        commentPlaceholder: "Legg til en kommentar...",
+        searchGif: "Søk etter GIFer...",
+        searchBtn: "Søk",
+        removeGif: "Fjern GIF",
+        postComment: "Send kommentar",
+        loginToComment: "Vennligst",
+        toPostAndComment: "for å kommentere og publisere.",
+        deleteConfirmation: "Er du sikker på at du vil slette dette innlegget? Denne handlingen kan ikke angres.",
+        deleteCommentConfirmation: "Er du sikker på at du vil slette denne kommentaren?",
+        
         // User Roles Page
         userRolesTitle: "Kattapult Brukerroller",
         userRolesIntro: "Lær om de forskjellige brukerrollene på Kattapult",
@@ -209,6 +310,55 @@ const translations = {
         selectedGif: "Valgt GIF:",
         removeGif: "Fjern GIF",
         submit: "Send inn",
+        noGifsFound: "Ingen GIFs funnet",
+        gifSearchError: "Feil ved søk etter GIF",
+        commentRequiredContent: "Vennligst legg til enten tekst eller en GIF i kommentaren din.",
+        
+        // Alerts
+        usernameExists: "Brukernavn eksisterer allerede",
+        registrationSuccessful: "Registrering vellykket! Vennligst vent på admin-godkjenning før du logger inn.",
+        invalidCredentials: "Ugyldige innloggingspålysninger",
+        pendingApproval: "Kontoen din venter på godkjenning",
+        loginFailed: "Innlogging feilet",
+        registrationFailed: "Registrering feilet",
+        serverError: "Serverfeil",
+        errorProcessingVote: "Feil ved behandling av stemme",
+        voteRemoved: "Stemme fjernet vellykket",
+        voteAdded: "Stemme lagt til vellykket",
+        commentAdded: "Kommentar lagt til vellykket",
+        errorAddingComment: "Feil ved tilføying av kommentar",
+        commentDeleted: "Kommentar fjernet vellykket",
+        errorDeletingComment: "Feil ved sletting av kommentar",
+        postApproved: "Element godkjent vellykket",
+        errorApprovingPost: "Feil ved godkjenning av element",
+        userApproved: "Bruker godkjent vellykket",
+        userNotFound: "Bruker ikke funnet",
+        userDeleted: "Bruker fjernet vellykket",
+        errorDeletingUser: "Feil ved sletting av bruker",
+        postDeleted: "Innlegg fjernet vellykket",
+        errorDeletingPost: "Feil ved sletting av innlegg",
+        userUnapproved: "Bruker ikke godkjent vellykket",
+        errorUnapproving: "Feil ved ikke godkjenning av bruker",
+        cannotUnapproveAdmin: "Kan ikke ikke godkjenne super admin",
+        passwordResetSuccess: "Passord tilbakestilt vellykket",
+        errorResettingPassword: "Feil ved tilbakestilling av passord",
+        passwordMinLength: "Passord må være minst 6 tegn langt",
+        userRoleUpdated: "Brukerrolle oppdatert vellykket",
+        errorUpdatingRole: "Feil ved oppdatering av brukerrolle",
+        cannotChangeAdminRole: "Kan ikke endre super admin-rolle",
+        userCreated: "Bruker opprettet vellykket",
+        errorCreatingUser: "Feil ved opprettelse av bruker",
+        postUpdated: "Innlegg oppdatert vellykket",
+        errorUpdatingPost: "Feil ved oppdatering av innlegg",
+        commentUpdated: "Kommentar oppdatert vellykket",
+        errorUpdatingComment: "Feil ved oppdatering av kommentar",
+        commentMustContain: "Kommentarer må inneholde enten tekst eller en GIF",
+        postNotFound: "Innlegg ikke funnet",
+        commentNotFound: "Kommentar ikke funnet",
+        notPermitted: "Du har ikke tillatelse til å utføre denne handlingen",
+        errorApprovingUser: "Feil ved godkjenning av bruker",
+        deleteUserConfirmation: "Er du sikker på at du vil slette denne brukeren?",
+        deletePostConfirmation: "Er du sikker på at du vil slette dette innlegget? Denne handlingen kan ikke angres.",
         
         // Comments
         comments: "Kommentarer",
@@ -265,89 +415,84 @@ const translations = {
         sortBy: "Sorter etter",
         ascending: "Stigende",
         descending: "Synkende",
-        filterBy: "Filter etter",
+        filterBy: "Filtrer etter",
         allUsers: "Alle brukere",
-        approvedOnly: "Godkjent kun",
-        pendingOnly: "Ventende kun",
-        clearFilters: "Fjern filtrering"
+        approvedOnly: "Kun godkjente",
+        pendingOnly: "Kun ventende",
+        clearFilters: "Tøm filtre"
     }
 };
 
-// Initialize language on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Get the saved language from localStorage, default to English if none is saved
-    const savedLanguage = localStorage.getItem('kattapult-language') || 'en';
-    
-    // Apply the language setting
-    setLanguage(savedLanguage);
-    
-    // Set up language switch event listeners
-    const languageOptions = document.querySelectorAll('.language-option');
-    languageOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const language = this.getAttribute('data-lang');
-            setLanguage(language);
-        });
-    });
-});
-
-// Set language - this handles both the initial setting and changes
+// Set initial language from localStorage or browser default
 function setLanguage(language) {
-    // Save the selected language to localStorage
-    localStorage.setItem('kattapult-language', language);
+    // Default to English if no language is specified
+    if (!language) {
+        const savedLang = localStorage.getItem('kattapult-language');
+        if (savedLang && translations[savedLang]) {
+            language = savedLang;
+        } else {
+            // Use browser language if available and supported
+            const browserLang = navigator.language.split('-')[0];
+            language = translations[browserLang] ? browserLang : 'en';
+        }
+    }
     
-    // Update the document's lang attribute
+    // Save to localStorage
+    localStorage.setItem('kattapult-language', language);
     document.documentElement.lang = language;
     
-    // Update UI to show the active language option
-    const languageOptions = document.querySelectorAll('.language-option');
-    languageOptions.forEach(option => {
-        const optionLang = option.getAttribute('data-lang');
-        if (optionLang === language) {
+    // Update active class on language switcher
+    document.querySelectorAll('.language-option').forEach(option => {
+        if (option.getAttribute('data-lang') === language) {
             option.classList.add('active');
         } else {
             option.classList.remove('active');
         }
     });
     
-    // Translate all elements with data-i18n attribute
-    const elements = document.querySelectorAll('[data-i18n]');
-    elements.forEach(element => {
+    // Translate the page
+    translatePage();
+}
+
+// Translate all elements with data-i18n attribute
+function translatePage() {
+    const currentLang = localStorage.getItem('kattapult-language') || 'en';
+    const dictionary = translations[currentLang] || translations.en;
+    
+    // Translate text content
+    document.querySelectorAll('[data-i18n]').forEach(element => {
         const key = element.getAttribute('data-i18n');
-        
-        if (translations[language] && translations[language][key]) {
-            if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
-                if (element.getAttribute('type') !== 'submit' && element.getAttribute('type') !== 'button') {
-                    element.value = translations[language][key];
-                }
-            } else if (element.childElementCount > 0) {
-                // Handle elements with children more carefully
-                for (let i = 0; i < element.childNodes.length; i++) {
-                    const node = element.childNodes[i];
-                    if (node.nodeType === Node.TEXT_NODE && node.nodeValue && node.nodeValue.trim() !== '') {
-                        node.nodeValue = translations[language][key];
-                        break; // Only replace the first text node
-                    }
-                }
-            } else {
-                element.textContent = translations[language][key];
-            }
+        if (dictionary[key]) {
+            element.textContent = dictionary[key];
         }
     });
     
     // Translate placeholders
-    const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
-    placeholders.forEach(element => {
+    document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
         const key = element.getAttribute('data-i18n-placeholder');
-        if (translations[language] && translations[language][key]) {
-            element.setAttribute('placeholder', translations[language][key]);
+        if (dictionary[key]) {
+            element.setAttribute('placeholder', dictionary[key]);
         }
     });
 }
 
-// Helper function to programmatically translate text based on a key
+// Helper function to get translation for a specific key
 function translate(key) {
-    const language = localStorage.getItem('kattapult-language') || 'en';
-    return translations[language] && translations[language][key] ? 
-           translations[language][key] : key;
-} 
+    const currentLang = localStorage.getItem('kattapult-language') || 'en';
+    const dictionary = translations[currentLang] || translations.en;
+    return dictionary[key] || key;
+}
+
+// Initialize language switcher
+document.addEventListener('DOMContentLoaded', function() {
+    // Set the initial language
+    setLanguage();
+    
+    // Add event listeners to language switcher
+    document.querySelectorAll('.language-option').forEach(option => {
+        option.addEventListener('click', function() {
+            const lang = this.getAttribute('data-lang');
+            setLanguage(lang);
+        });
+    });
+}); 
