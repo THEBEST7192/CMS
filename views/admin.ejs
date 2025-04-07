@@ -72,7 +72,18 @@
                     <tbody>
                         <% allUsers.forEach(user => { %>
                             <tr>
-                                <td><%= user.display_name ? `${user.display_name} (@${user.username})` : user.username %></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <% if (user.profile_picture) { %>
+                                            <img src="<%= user.profile_picture %>" alt="Profile" class="profile-picture me-2">
+                                        <% } else { %>
+                                            <div class="profile-picture-placeholder me-2">
+                                                <span><%= user.display_name ? user.display_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase() %></span>
+                                            </div>
+                                        <% } %>
+                                        <span><%= user.display_name ? `${user.display_name} (@${user.username})` : user.username %></span>
+                                    </div>
+                                </td>
                                 <td>
                                     <% if (user.username === 'BobKåre') { %>
                                         <span class="badge bg-primary">Super Admin</span>
@@ -146,7 +157,18 @@
                     <tbody>
                         <% allComments.forEach(function(comment) { %>
                             <tr>
-                                <td><%= comment.commenter_display_name ? `${comment.commenter_display_name} (@${comment.commenter_username})` : comment.commenter_username %></td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <% if (comment.commenter_picture) { %>
+                                            <img src="<%= comment.commenter_picture %>" alt="Profile" class="profile-picture me-2">
+                                        <% } else { %>
+                                            <div class="profile-picture-placeholder me-2">
+                                                <span><%= comment.commenter_display_name ? comment.commenter_display_name.charAt(0).toUpperCase() : comment.commenter_username.charAt(0).toUpperCase() %></span>
+                                            </div>
+                                        <% } %>
+                                        <span><%= comment.commenter_display_name ? `${comment.commenter_display_name} (@${comment.commenter_username})` : comment.commenter_username %></span>
+                                    </div>
+                                </td>
                                 <td>
                                     <% 
                                     // Get the item title from the items array
@@ -232,16 +254,27 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h5 class="card-title"><%= item.title %></h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <% if (item.author_picture) { %>
+                                        <img src="<%= item.author_picture %>" alt="Author" class="profile-picture me-2">
+                                    <% } else { %>
+                                        <div class="profile-picture-placeholder me-2">
+                                            <span><%= item.author_display_name ? item.author_display_name.charAt(0).toUpperCase() : item.author_username.charAt(0).toUpperCase() %></span>
+                                        </div>
+                                    <% } %>
+                                    <div>
+                                        <h5 class="card-title mb-0"><%= item.title %></h5>
+                                        <small class="text-muted"><span data-i18n="postedBy">Posted by</span> <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %> • <span data-i18n="postedOn">Posted on</span>: <%= new Date(item.created_at).toLocaleString() %></small>
+                                    </div>
+                                </div>
+                                
                                 <p class="card-text"><%= item.content %></p>
                                 <% if (item.gif_url) { %>
                                     <div class="mb-3">
                                         <img src="<%= item.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 150px;">
                                     </div>
                                 <% } %>
-                                <p class="text-muted small"><span data-i18n="postedBy">Posted by</span> <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %></p>
                                 <p class="text-muted small"><span data-i18n="votes">Votes</span>: <%= item.vote_count %></p>
-                                <p class="text-muted small"><span data-i18n="postedOn">Posted on</span>: <%= new Date(item.created_at).toLocaleString() %></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editPostModal<%= item.id %>" data-i18n="edit">
                                         Edit
@@ -312,16 +345,27 @@
                     <div class="col-md-4">
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h5 class="card-title"><%= item.title %></h5>
+                                <div class="d-flex align-items-center mb-3">
+                                    <% if (item.author_picture) { %>
+                                        <img src="<%= item.author_picture %>" alt="Author" class="profile-picture me-2">
+                                    <% } else { %>
+                                        <div class="profile-picture-placeholder me-2">
+                                            <span><%= item.author_display_name ? item.author_display_name.charAt(0).toUpperCase() : item.author_username.charAt(0).toUpperCase() %></span>
+                                        </div>
+                                    <% } %>
+                                    <div>
+                                        <h5 class="card-title mb-0"><%= item.title %></h5>
+                                        <small class="text-muted"><span data-i18n="postedBy">Posted by</span> <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %> • <span data-i18n="postedOn">Posted on</span>: <%= new Date(item.created_at).toLocaleString() %></small>
+                                    </div>
+                                </div>
+                                
                                 <p class="card-text"><%= item.content %></p>
                                 <% if (item.gif_url) { %>
                                     <div class="mb-3">
                                         <img src="<%= item.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 150px;">
                                     </div>
                                 <% } %>
-                                <p class="text-muted small"><span data-i18n="postedBy">Posted by</span> <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %></p>
                                 <p class="text-muted small"><span data-i18n="votes">Votes</span>: <%= item.vote_count %></p>
-                                <p class="text-muted small"><span data-i18n="postedOn">Posted on</span>: <%= new Date(item.created_at).toLocaleString() %></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editApprovedPostModal<%= item.id %>" data-i18n="edit">
                                         Edit

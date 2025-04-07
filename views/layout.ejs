@@ -76,7 +76,11 @@
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                                 <% if (locals.user.profile_picture) { %>
-                                    <img src="<%= locals.user.profile_picture %>" alt="Profile" class="rounded-circle me-2" style="width: 24px; height: 24px; object-fit: cover;">
+                                    <img src="<%= locals.user.profile_picture %>" alt="Profile" class="profile-picture profile-picture-sm me-2">
+                                <% } else { %>
+                                    <div class="profile-picture-placeholder profile-picture-sm me-2 d-inline-flex">
+                                        <span><%= locals.user.display_name ? locals.user.display_name.charAt(0).toUpperCase() : locals.user.username.charAt(0).toUpperCase() %></span>
+                                    </div>
                                 <% } %>
                                 <%= locals.user.username %>
                             </a>

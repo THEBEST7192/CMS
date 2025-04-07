@@ -100,6 +100,7 @@ const translations = {
         changePassword: "Change Password",
         currentPassword: "Current Password",
         newPassword: "New Password",
+        profilePictureSuccess: "Profile picture updated successfully",
         
         // Admin
         adminPanelTitle: "Kattapult Admin Panel",
@@ -223,6 +224,7 @@ const translations = {
         changePassword: "Endre passord",
         currentPassword: "Nåværende passord",
         newPassword: "Nytt passord",
+        profilePictureSuccess: "Profilbilde oppdatert vellykket",
         
         // Admin
         adminPanelTitle: "Kattapult administrasjonspanel",

@@ -33,10 +33,10 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
                                     <% if (item.author_picture) { %>
-                                        <img src="<%= item.author_picture %>" alt="Author" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <img src="<%= item.author_picture %>" alt="Author" class="profile-picture me-2">
                                     <% } else { %>
-                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                            <span class="text-white"><%= item.author_display_name ? item.author_display_name.charAt(0).toUpperCase() : 'U' %></span>
+                                        <div class="profile-picture-placeholder me-2">
+                                            <span><%= item.author_display_name ? item.author_display_name.charAt(0).toUpperCase() : 'U' %></span>
                                         </div>
                                     <% } %>
                                     <div>
@@ -93,10 +93,10 @@
                                                             <div>
                                                                 <div class="d-flex align-items-center mb-2">
                                                                     <% if (comment.commenter_picture) { %>
-                                                                        <img src="<%= comment.commenter_picture %>" alt="Commenter" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                                        <img src="<%= comment.commenter_picture %>" alt="Commenter" class="profile-picture profile-picture-sm me-2">
                                                                     <% } else { %>
-                                                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
-                                                                            <span class="text-white"><%= comment.commenter_display_name ? comment.commenter_display_name.charAt(0).toUpperCase() : 'U' %></span>
+                                                                        <div class="profile-picture-placeholder profile-picture-sm me-2">
+                                                                            <span><%= comment.commenter_display_name ? comment.commenter_display_name.charAt(0).toUpperCase() : 'U' %></span>
                                                                         </div>
                                                                     <% } %>
                                                                     <h6 class="card-subtitle mb-1 text-muted">
@@ -270,10 +270,10 @@
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
                                     <% if (item.author_picture) { %>
-                                        <img src="<%= item.author_picture %>" alt="Author" class="rounded-circle me-2" style="width: 40px; height: 40px; object-fit: cover;">
+                                        <img src="<%= item.author_picture %>" alt="Author" class="profile-picture me-2">
                                     <% } else { %>
-                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 40px; height: 40px;">
-                                            <span class="text-white"><%= item.author_display_name ? item.author_display_name.charAt(0).toUpperCase() : 'U' %></span>
+                                        <div class="profile-picture-placeholder me-2">
+                                            <span><%= item.author_display_name ? item.author_display_name.charAt(0).toUpperCase() : 'U' %></span>
                                         </div>
                                     <% } %>
                                     <div>
@@ -330,10 +330,10 @@
                                                             <div>
                                                                 <div class="d-flex align-items-center mb-2">
                                                                     <% if (comment.commenter_picture) { %>
-                                                                        <img src="<%= comment.commenter_picture %>" alt="Commenter" class="rounded-circle me-2" style="width: 30px; height: 30px; object-fit: cover;">
+                                                                        <img src="<%= comment.commenter_picture %>" alt="Commenter" class="profile-picture profile-picture-sm me-2">
                                                                     <% } else { %>
-                                                                        <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center me-2" style="width: 30px; height: 30px;">
-                                                                            <span class="text-white"><%= comment.commenter_display_name ? comment.commenter_display_name.charAt(0).toUpperCase() : 'U' %></span>
+                                                                        <div class="profile-picture-placeholder profile-picture-sm me-2">
+                                                                            <span><%= comment.commenter_display_name ? comment.commenter_display_name.charAt(0).toUpperCase() : 'U' %></span>
                                                                         </div>
                                                                     <% } %>
                                                                     <h6 class="card-subtitle mb-1 text-muted">
