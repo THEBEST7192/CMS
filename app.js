@@ -161,7 +161,12 @@ app.get('/', async (req, res) => {
       });
     }
     
-    renderWithLayout(res, 'index', { items, user: req.session.user });
+    renderWithLayout(res, 'index', { 
+      items, 
+      user: req.session.user,
+      error: req.query.error,
+      success: req.query.success
+    });
   } catch (error) {
     console.error('Error loading homepage:', error);
     res.status(500).send('Server error');
@@ -374,17 +379,18 @@ app.post('/vote/:itemId', isAuthenticated, async (req, res) => {
         'DELETE FROM votes WHERE item_id = ? AND user_id = ?',
         [itemId, req.session.user.id]
       );
+      res.redirect('/?success=Vote removed successfully');
     } else {
       // If not voted, add a vote
       await pool.query(
         'INSERT INTO votes (item_id, user_id) VALUES (?, ?)',
         [itemId, req.session.user.id]
       );
+      res.redirect('/?success=Vote added successfully');
     }
-    res.redirect('/');
   } catch (error) {
     console.error('Error processing vote:', error);
-    res.status(500).send('Error processing vote');
+    res.redirect('/?error=Error processing vote: ' + error.message);
   }
 });
 
@@ -399,10 +405,10 @@ app.post('/comment', isAuthenticated, async (req, res) => {
     );
     
     // Redirect back to the homepage
-    res.redirect('/');
+    res.redirect('/?success=Comment added successfully');
   } catch (error) {
     console.error('Error adding comment:', error);
-    res.status(500).send('Error adding comment');
+    res.redirect('/?error=Error adding comment: ' + error.message);
   }
 });
 
@@ -421,10 +427,10 @@ app.post('/comment/delete/:commentId', isAuthenticated, async (req, res) => {
       );
     }
     
-    res.redirect('/');
+    res.redirect('/?success=Comment deleted successfully');
   } catch (error) {
     console.error('Error deleting comment:', error);
-    res.status(500).send('Error deleting comment');
+    res.redirect('/?error=Error deleting comment: ' + error.message);
   }
 });
 
@@ -442,7 +448,8 @@ app.get('/admin', isAdmin, async (req, res) => {
       FROM items i 
       LEFT JOIN votes v ON i.id = v.item_id 
       LEFT JOIN users u ON i.user_id = u.id
-      GROUP BY i.id
+      GROUP BY i.id, i.title, i.content, i.user_id, i.created_at, i.approved, 
+               u.username, u.display_name, u.profile_picture
       ORDER BY i.approved ASC, i.created_at DESC
     `);
     
@@ -634,6 +641,132 @@ app.post('/admin/create-user', isAdmin, async (req, res) => {
 app.get('/logout', (req, res) => {
   req.session.destroy();
   res.redirect('/');
+});
+
+// Handle post editing by admin
+app.post('/admin/edit-post/:itemId', isAdmin, async (req, res) => {
+  const { itemId } = req.params;
+  const { title, content } = req.body;
+  
+  try {
+    // Update the post
+    await pool.query('UPDATE items SET title = ?, content = ? WHERE id = ?', [title, content, itemId]);
+    res.redirect('/admin?success=Post updated successfully');
+  } catch (error) {
+    console.error('Error updating post:', error);
+    res.redirect('/admin?error=Error updating post: ' + error.message);
+  }
+});
+
+// Handle comment editing by admin
+app.post('/admin/edit-comment/:commentId', isAdmin, async (req, res) => {
+  const { commentId } = req.params;
+  const { content } = req.body;
+  
+  try {
+    // Update the comment
+    await pool.query('UPDATE comments SET content = ? WHERE id = ?', [content, commentId]);
+    res.redirect('/admin?success=Comment updated successfully');
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    res.redirect('/admin?error=Error updating comment: ' + error.message);
+  }
+});
+
+// Roles page
+app.get('/roles', (req, res) => {
+  renderWithLayout(res, 'roles', { user: req.session.user });
+});
+
+// Handle post editing by user
+app.post('/post/edit/:itemId', isAuthenticated, async (req, res) => {
+  const { itemId } = req.params;
+  const { title, content } = req.body;
+  
+  try {
+    // Check if the user is the author or an admin
+    const [items] = await pool.query('SELECT user_id FROM items WHERE id = ?', [itemId]);
+    
+    if (items.length === 0) {
+      return res.redirect('/?error=Post not found');
+    }
+    
+    const item = items[0];
+    
+    // Only allow the author or an admin to edit
+    if (item.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
+      return res.redirect('/?error=You do not have permission to edit this post');
+    }
+    
+    // Update the post
+    await pool.query('UPDATE items SET title = ?, content = ? WHERE id = ?', [title, content, itemId]);
+    res.redirect('/?success=Post updated successfully');
+  } catch (error) {
+    console.error('Error updating post:', error);
+    res.redirect('/?error=Error updating post: ' + error.message);
+  }
+});
+
+// Handle post deletion by user
+app.post('/post/delete/:itemId', isAuthenticated, async (req, res) => {
+  const { itemId } = req.params;
+  
+  try {
+    // Check if the user is the author or an admin
+    const [items] = await pool.query('SELECT user_id FROM items WHERE id = ?', [itemId]);
+    
+    if (items.length === 0) {
+      return res.redirect('/?error=Post not found');
+    }
+    
+    const item = items[0];
+    
+    // Only allow the author or an admin to delete
+    if (item.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
+      return res.redirect('/?error=You do not have permission to delete this post');
+    }
+    
+    // First delete all comments for this item
+    await pool.query('DELETE FROM comments WHERE item_id = ?', [itemId]);
+    // Then delete all votes for this item
+    await pool.query('DELETE FROM votes WHERE item_id = ?', [itemId]);
+    // Then delete the item
+    await pool.query('DELETE FROM items WHERE id = ?', [itemId]);
+    
+    res.redirect('/?success=Post deleted successfully');
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    res.redirect('/?error=Error deleting post: ' + error.message);
+  }
+});
+
+// Handle comment editing by user
+app.post('/comment/edit/:commentId', isAuthenticated, async (req, res) => {
+  const { commentId } = req.params;
+  const { content } = req.body;
+  
+  try {
+    // Check if the user is the author or an admin
+    const [comments] = await pool.query('SELECT user_id FROM comments WHERE id = ?', [commentId]);
+    
+    if (comments.length === 0) {
+      return res.redirect('/?error=Comment not found');
+    }
+    
+    const comment = comments[0];
+    
+    // Only allow the author or an admin to edit
+    if (comment.user_id !== req.session.user.id && req.session.user.role !== 'admin') {
+      return res.redirect('/?error=You do not have permission to edit this comment');
+    }
+    
+    // Update the comment
+    await pool.query('UPDATE comments SET content = ? WHERE id = ?', [content, commentId]);
+    res.redirect('/?success=Comment updated successfully');
+  } catch (error) {
+    console.error('Error updating comment:', error);
+    res.redirect('/?error=Error updating comment: ' + error.message);
+  }
 });
 
 // Start server
