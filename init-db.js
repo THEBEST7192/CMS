@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mysql = require('mysql2/promise');
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 
 async function initializeDatabase() {
   try {
@@ -85,6 +85,24 @@ async function initializeDatabase() {
     `);
 
     console.log('Comments table created');
+
+    // Check if super admin BobKåre exists, if not create one
+    const [superAdminExists] = await pool.query('SELECT * FROM users WHERE username = ?', ['BobKåre']);
+    
+    if (superAdminExists.length === 0) {
+      // Create super admin if doesn't exist
+      const superAdminPassword = '%@mcdxcc%/--%c%_/**cllfcbma';
+      const hashedPassword = await bcrypt.hash(superAdminPassword, 10);
+      
+      await pool.query(
+        'INSERT INTO users (username, password, display_name, role, approved) VALUES (?, ?, ?, ?, ?)',
+        ['BobKåre', hashedPassword, 'BobKåre', 'admin', true]
+      );
+      
+      console.log('Super admin BobKåre created');
+    } else {
+      console.log('Super admin BobKåre already exists');
+    }
 
     console.log('Database initialization completed');
   } catch (error) {
