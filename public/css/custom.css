@@ -125,4 +125,29 @@ footer {
 /* Dropdown menus */
 .dropdown-item.active, .dropdown-item:active {
   background-color: var(--primary) !important;
+}
+
+/* Language switch styling */
+.language-switch {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--dark-gray);
+  border-radius: 20px;
+  padding: 3px;
+  margin-left: 15px;
+}
+
+.language-option {
+  cursor: pointer;
+  padding: 5px 10px;
+  border-radius: 17px;
+  color: var(--light-gray);
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.language-option.active {
+  background-color: var(--primary);
+  color: white;
+  font-weight: bold;
 } 

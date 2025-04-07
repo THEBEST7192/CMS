@@ -1,14 +1,14 @@
 <div class="container">
     <div class="row mb-4">
         <div class="col-12 text-center">
-            <h2 class="text-primary">Kattapult User Roles</h2>
-            <p class="lead">Learn about the different user roles on Kattapult</p>
+            <h2 class="text-primary" data-i18n="userRolesTitle">Kattapult User Roles</h2>
+            <p class="lead" data-i18n="userRolesIntro">Learn about the different user roles on Kattapult</p>
         </div>
     </div>
     
     <% if (!locals.user) { %>
         <div class="alert alert-info mb-4">
-            <i class="bi bi-info-circle"></i> To get started, please <a href="/login">log in</a> or <a href="/register">create an account</a>.
+            <i class="bi bi-info-circle"></i> <span data-i18n="loginPrompt">To get started, please</span> <a href="/login" data-i18n="login">log in</a> <span data-i18n="or">or</span> <a href="/register" data-i18n="register">create an account</a>.
         </div>
     <% } %>
     
@@ -16,17 +16,17 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">User</h5>
+                    <h5 class="mb-0" data-i18n="userRole">User</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">Standard users can:</p>
+                    <p class="card-text" data-i18n="userCan">Standard users can:</p>
                     <ul>
-                        <li>Create posts (requires approval)</li>
-                        <li>Comment on approved posts</li>
-                        <li>Vote on posts</li>
-                        <li>Edit their own profile</li>
+                        <li data-i18n="userAbility1">Create posts (requires approval)</li>
+                        <li data-i18n="userAbility2">Comment on approved posts</li>
+                        <li data-i18n="userAbility3">Vote on posts</li>
+                        <li data-i18n="userAbility4">Edit their own profile</li>
                     </ul>
-                    <p class="card-text">Posts created by standard users must be approved by an admin before they appear on the site.</p>
+                    <p class="card-text" data-i18n="userDescription">Posts created by standard users must be approved by an admin before they appear on the site.</p>
                 </div>
             </div>
         </div>
@@ -34,18 +34,18 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">Trusted User</h5>
+                    <h5 class="mb-0" data-i18n="trustedUserRole">Trusted User</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">Trusted users can:</p>
+                    <p class="card-text" data-i18n="trustedUserCan">Trusted users can:</p>
                     <ul>
-                        <li>Create posts (automatically approved)</li>
-                        <li>Comment on approved posts</li>
-                        <li>Vote on posts</li>
-                        <li>Edit their own profile</li>
-                        <li>Edit their own posts and comments</li>
+                        <li data-i18n="trustedUserAbility1">Create posts (automatically approved)</li>
+                        <li data-i18n="trustedUserAbility2">Comment on approved posts</li>
+                        <li data-i18n="trustedUserAbility3">Vote on posts</li>
+                        <li data-i18n="trustedUserAbility4">Edit their own profile</li>
+                        <li data-i18n="trustedUserAbility5">Edit their own posts and comments</li>
                     </ul>
-                    <p class="card-text">Posts created by trusted users are automatically approved and appear on the site immediately.</p>
+                    <p class="card-text" data-i18n="trustedUserDescription">Posts created by trusted users are automatically approved and appear on the site immediately.</p>
                 </div>
             </div>
         </div>
@@ -53,23 +53,23 @@
         <div class="col-md-4 mb-4">
             <div class="card h-100">
                 <div class="card-header">
-                    <h5 class="mb-0">Admin</h5>
+                    <h5 class="mb-0" data-i18n="adminRole">Admin</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">Admins can:</p>
+                    <p class="card-text" data-i18n="adminCan">Admins can:</p>
                     <ul>
-                        <li>Create posts (automatically approved)</li>
-                        <li>Comment on approved posts</li>
-                        <li>Vote on posts</li>
-                        <li>Edit their own profile</li>
-                        <li>Edit their own posts and comments</li>
-                        <li>Approve or reject posts from standard users</li>
-                        <li>Edit any post or comment</li>
-                        <li>Delete any post or comment</li>
-                        <li>Manage user accounts</li>
-                        <li>Access the admin panel</li>
+                        <li data-i18n="adminAbility1">Create posts (automatically approved)</li>
+                        <li data-i18n="adminAbility2">Comment on approved posts</li>
+                        <li data-i18n="adminAbility3">Vote on posts</li>
+                        <li data-i18n="adminAbility4">Edit their own profile</li>
+                        <li data-i18n="adminAbility5">Edit their own posts and comments</li>
+                        <li data-i18n="adminAbility6">Approve or reject posts from standard users</li>
+                        <li data-i18n="adminAbility7">Edit any post or comment</li>
+                        <li data-i18n="adminAbility8">Delete any post or comment</li>
+                        <li data-i18n="adminAbility9">Manage user accounts</li>
+                        <li data-i18n="adminAbility10">Access the admin panel</li>
                     </ul>
-                    <p class="card-text">Admins have full control over the site content and user management.</p>
+                    <p class="card-text" data-i18n="adminDescription">Admins have full control over the site content and user management.</p>
                 </div>
             </div>
         </div>
@@ -79,16 +79,16 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-header">
-                    <h5 class="mb-0">Super Admin</h5>
+                    <h5 class="mb-0" data-i18n="superAdminRole">Super Admin</h5>
                 </div>
                 <div class="card-body">
-                    <p class="card-text">The Super Admin (BobKåre) has all the capabilities of a regular admin, plus:</p>
+                    <p class="card-text"><span data-i18n="superAdminIntro">The Super Admin (BobKåre) has all the capabilities of a regular admin, plus:</span></p>
                     <ul>
-                        <li>Cannot be deleted from the system</li>
-                        <li>Cannot have their role changed</li>
-                        <li>Has permanent access to all admin features</li>
+                        <li data-i18n="superAdminAbility1">Cannot be deleted from the system</li>
+                        <li data-i18n="superAdminAbility2">Cannot have their role changed</li>
+                        <li data-i18n="superAdminAbility3">Has permanent access to all admin features</li>
                     </ul>
-                    <p class="card-text">The Super Admin role is a special role that cannot be assigned to other users and is protected from deletion or role changes.</p>
+                    <p class="card-text" data-i18n="superAdminDescription">The Super Admin role is a special role that cannot be assigned to other users and is protected from deletion or role changes.</p>
                 </div>
             </div>
         </div>
