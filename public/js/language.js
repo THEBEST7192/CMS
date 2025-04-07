@@ -121,7 +121,19 @@ const translations = {
         post: "Post",
         user: "User",
         editPost: "Edit Post",
-        deletePost: "Delete Post"
+        deletePost: "Delete Post",
+        search: "Search",
+        searchPlaceholder: "Search by username, display name, or role...",
+        searchComments: "Search comments...",
+        searchContent: "Search content...",
+        sortBy: "Sort by",
+        ascending: "Ascending",
+        descending: "Descending",
+        filterBy: "Filter by",
+        allUsers: "All Users",
+        approvedOnly: "Approved Only",
+        pendingOnly: "Pending Only",
+        clearFilters: "Clear Filters"
     },
     no: {
         // Common
@@ -245,7 +257,19 @@ const translations = {
         post: "Innlegg",
         user: "Bruker",
         editPost: "Rediger innlegg",
-        deletePost: "Slett innlegg"
+        deletePost: "Slett innlegg",
+        search: "Søk",
+        searchPlaceholder: "Søk etter brukernavn, visningsnavn eller rolle...",
+        searchComments: "Søk i kommentarer...",
+        searchContent: "Søk i innhold...",
+        sortBy: "Sorter etter",
+        ascending: "Stigende",
+        descending: "Synkende",
+        filterBy: "Filter etter",
+        allUsers: "Alle brukere",
+        approvedOnly: "Godkjent kun",
+        pendingOnly: "Ventende kun",
+        clearFilters: "Fjern filtrering"
     }
 };
 

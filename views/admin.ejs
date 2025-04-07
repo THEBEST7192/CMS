@@ -59,14 +59,52 @@
                 </div>
             </div>
             
+            <!-- Search and Filter Controls -->
+            <div class="row mb-3">
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <input type="text" id="userSearchInput" class="form-control" placeholder="Search by username, display name, or role..." data-i18n-placeholder="searchPlaceholder">
+                        <button class="btn btn-outline-secondary" type="button" id="userSearchBtn" data-i18n="search">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text" data-i18n="sortBy">Sort by</span>
+                        <select id="userSortSelect" class="form-select">
+                            <option value="username">Username</option>
+                            <option value="displayName">Display Name</option>
+                            <option value="role">Role</option>
+                            <option value="approved">Approval Status</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-2">
+                    <select id="userSortDirectionSelect" class="form-select">
+                        <option value="asc" data-i18n="ascending">Ascending</option>
+                        <option value="desc" data-i18n="descending">Descending</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <div class="input-group">
+                        <span class="input-group-text" data-i18n="filterBy">Filter by</span>
+                        <select id="userFilterSelect" class="form-select">
+                            <option value="all" data-i18n="allUsers">All Users</option>
+                            <option value="approved" data-i18n="approvedOnly">Approved Only</option>
+                            <option value="pending" data-i18n="pendingOnly">Pending Only</option>
+                        </select>
+                        <button class="btn btn-outline-secondary" type="button" id="clearUserFiltersBtn" data-i18n="clearFilters">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+            
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped" id="userTable">
                     <thead>
                         <tr>
-                            <th>User</th>
-                            <th>Role</th>
-                            <th>Approved</th>
-                            <th>Actions</th>
+                            <th class="sortable" data-sort="username" data-i18n="user">User</th>
+                            <th class="sortable" data-sort="role" data-i18n="role">Role</th>
+                            <th class="sortable" data-sort="approved" data-i18n="approved">Approved</th>
+                            <th data-i18n="actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -88,8 +126,11 @@
                                     <% if (user.username === 'BobKåre') { %>
                                         <span class="badge bg-primary">Super Admin</span>
                                     <% } else { %>
+                                        <span class="badge <%= user.role === 'admin' ? 'bg-danger' : (user.role === 'trusted_user' ? 'bg-warning' : 'bg-secondary') %>">
+                                            <%= user.role === 'admin' ? 'Admin' : (user.role === 'trusted_user' ? 'Trusted User' : 'User') %>
+                                        </span>
                                         <form action="/admin/update-role/<%= user.id %>" method="POST" style="display: inline;">
-                                            <select name="role" class="form-select form-select-sm" onchange="this.form.submit()">
+                                            <select name="role" class="form-select form-select-sm mt-1" onchange="this.form.submit()">
                                                 <option value="user" <%= user.role === 'user' ? 'selected' : '' %>>User</option>
                                                 <option value="trusted_user" <%= user.role === 'trusted_user' ? 'selected' : '' %>>Trusted User</option>
                                                 <option value="admin" <%= user.role === 'admin' ? 'selected' : '' %>>Admin</option>
@@ -143,14 +184,42 @@
     <div class="row mb-5">
         <div class="col-12">
             <h3 data-i18n="commentsManagement">Comments Management</h3>
+            
+            <!-- Search and Filter Controls for Comments -->
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="text" id="commentSearchInput" class="form-control" placeholder="Search comments..." data-i18n-placeholder="searchComments">
+                        <button class="btn btn-outline-secondary" type="button" id="commentSearchBtn" data-i18n="search">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" data-i18n="sortBy">Sort by</span>
+                        <select id="commentSortSelect" class="form-select">
+                            <option value="user">User</option>
+                            <option value="post">Post</option>
+                            <option value="date" selected>Date</option>
+                        </select>
+                        <select id="commentSortDirectionSelect" class="form-select">
+                            <option value="asc" data-i18n="ascending">Ascending</option>
+                            <option value="desc" data-i18n="descending">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary" type="button" id="clearCommentFiltersBtn" data-i18n="clearFilters">Clear Filters</button>
+                </div>
+            </div>
+            
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table table-striped" id="commentTable">
                     <thead>
                         <tr>
-                            <th data-i18n="user">User</th>
-                            <th data-i18n="post">Post</th>
+                            <th class="sortable" data-sort="user" data-i18n="user">User</th>
+                            <th class="sortable" data-sort="post" data-i18n="post">Post</th>
                             <th data-i18n="comment">Comment</th>
-                            <th data-i18n="date">Date</th>
+                            <th class="sortable" data-sort="date" data-i18n="date">Date</th>
                             <th data-i18n="actions">Actions</th>
                         </tr>
                     </thead>
@@ -249,9 +318,42 @@
     <div class="row mb-5">
         <div class="col-12">
             <h3 data-i18n="pendingContent">Pending Content</h3>
-            <div class="row">
+            
+            <!-- Search and Sort Controls for Pending Content -->
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="text" id="pendingContentSearchInput" class="form-control" placeholder="Search content..." data-i18n-placeholder="searchContent">
+                        <button class="btn btn-outline-secondary" type="button" id="pendingContentSearchBtn" data-i18n="search">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" data-i18n="sortBy">Sort by</span>
+                        <select id="pendingContentSortSelect" class="form-select">
+                            <option value="title">Title</option>
+                            <option value="author">Author</option>
+                            <option value="date" selected>Date</option>
+                            <option value="votes">Votes</option>
+                        </select>
+                        <select id="pendingContentSortDirectionSelect" class="form-select">
+                            <option value="asc" data-i18n="ascending">Ascending</option>
+                            <option value="desc" data-i18n="descending">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary" type="button" id="clearPendingContentFiltersBtn" data-i18n="clearFilters">Clear Filters</button>
+                </div>
+            </div>
+            
+            <div class="row" id="pendingContentContainer">
                 <% pendingItems.forEach(function(item) { %>
-                    <div class="col-md-4">
+                    <div class="col-md-4 content-card" 
+                         data-title="<%= item.title.toLowerCase() %>" 
+                         data-author="<%= (item.author_display_name || item.author_username).toLowerCase() %>" 
+                         data-date="<%= new Date(item.created_at).getTime() %>"
+                         data-votes="<%= item.vote_count %>">
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
@@ -337,12 +439,45 @@
         </div>
     </div>
 
-    <div class="row">
+    <div class="row mb-5">
         <div class="col-12">
             <h3 data-i18n="approvedContent">Approved Content</h3>
-            <div class="row">
+            
+            <!-- Search and Sort Controls for Approved Content -->
+            <div class="row mb-3">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <input type="text" id="approvedContentSearchInput" class="form-control" placeholder="Search content..." data-i18n-placeholder="searchContent">
+                        <button class="btn btn-outline-secondary" type="button" id="approvedContentSearchBtn" data-i18n="search">Search</button>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="input-group">
+                        <span class="input-group-text" data-i18n="sortBy">Sort by</span>
+                        <select id="approvedContentSortSelect" class="form-select">
+                            <option value="title">Title</option>
+                            <option value="author">Author</option>
+                            <option value="date" selected>Date</option>
+                            <option value="votes">Votes</option>
+                        </select>
+                        <select id="approvedContentSortDirectionSelect" class="form-select">
+                            <option value="asc" data-i18n="ascending">Ascending</option>
+                            <option value="desc" data-i18n="descending">Descending</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-outline-secondary" type="button" id="clearApprovedContentFiltersBtn" data-i18n="clearFilters">Clear Filters</button>
+                </div>
+            </div>
+            
+            <div class="row" id="approvedContentContainer">
                 <% approvedItems.forEach(function(item) { %>
-                    <div class="col-md-4">
+                    <div class="col-md-4 content-card" 
+                         data-title="<%= item.title.toLowerCase() %>" 
+                         data-author="<%= (item.author_display_name || item.author_username).toLowerCase() %>" 
+                         data-date="<%= new Date(item.created_at).getTime() %>"
+                         data-votes="<%= item.vote_count %>">
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div class="d-flex align-items-center mb-3">
@@ -428,6 +563,16 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize sorting and filtering for user management
+        initializeUserManagement();
+        
+        // Initialize sorting and filtering for comments management
+        initializeCommentsManagement();
+        
+        // Initialize sorting and filtering for content (both pending and approved)
+        initializeContentManagement('pending');
+        initializeContentManagement('approved');
+        
         // Validate comment edit forms
         const commentEditForms = document.querySelectorAll('form[action^="/admin/edit-comment/"]');
         commentEditForms.forEach(form => {
@@ -462,4 +607,477 @@
             });
         });
     });
+    
+    // User Management Functionality
+    function initializeUserManagement() {
+        const userSearchInput = document.getElementById('userSearchInput');
+        const userSearchBtn = document.getElementById('userSearchBtn');
+        const userSortSelect = document.getElementById('userSortSelect');
+        const userSortDirectionSelect = document.getElementById('userSortDirectionSelect');
+        const userFilterSelect = document.getElementById('userFilterSelect');
+        const clearUserFiltersBtn = document.getElementById('clearUserFiltersBtn');
+        const userTable = document.getElementById('userTable');
+        const sortableHeaders = userTable.querySelectorAll('th.sortable');
+        
+        // Search functionality
+        userSearchBtn.addEventListener('click', function() {
+            filterUsers();
+        });
+        
+        userSearchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                filterUsers();
+            }
+        });
+        
+        // Sort functionality
+        userSortSelect.addEventListener('change', function() {
+            sortUsers();
+        });
+        
+        userSortDirectionSelect.addEventListener('change', function() {
+            sortUsers();
+        });
+        
+        // Clickable headers for sorting
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const sort = this.getAttribute('data-sort');
+                
+                // If already sorting by this column, toggle direction
+                if (userSortSelect.value === sort) {
+                    userSortDirectionSelect.value = userSortDirectionSelect.value === 'asc' ? 'desc' : 'asc';
+                } else {
+                    userSortSelect.value = sort;
+                }
+                
+                sortUsers();
+            });
+        });
+        
+        // Filter functionality
+        userFilterSelect.addEventListener('change', function() {
+            filterUsers();
+        });
+        
+        // Clear filters
+        clearUserFiltersBtn.addEventListener('click', function() {
+            userSearchInput.value = '';
+            userSortSelect.value = 'username';
+            userSortDirectionSelect.value = 'asc';
+            userFilterSelect.value = 'all';
+            
+            // Show all rows
+            const rows = userTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+                row.classList.remove('highlight');
+            });
+            
+            // Reset header indicators
+            sortableHeaders.forEach(header => {
+                header.classList.remove('asc', 'desc');
+            });
+        });
+        
+        function filterUsers() {
+            const searchTerm = userSearchInput.value.toLowerCase().trim();
+            const filterValue = userFilterSelect.value;
+            const rows = userTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                // Text content for search
+                const userCell = row.querySelector('td:nth-child(1)');
+                const roleCell = row.querySelector('td:nth-child(2)');
+                const approvedCell = row.querySelector('td:nth-child(3)');
+                
+                const userData = userCell.textContent.toLowerCase();
+                const roleBadge = roleCell.querySelector('.badge');
+                const roleValue = roleBadge ? roleBadge.textContent.toLowerCase() : roleCell.textContent.toLowerCase();
+                const isApproved = approvedCell.textContent.includes('Approved');
+                
+                let showRow = true;
+                
+                // Apply search filter
+                if (searchTerm) {
+                    showRow = userData.includes(searchTerm) || roleValue.includes(searchTerm);
+                }
+                
+                // Apply status filter
+                if (showRow && filterValue !== 'all') {
+                    if (filterValue === 'approved' && !isApproved) {
+                        showRow = false;
+                    } else if (filterValue === 'pending' && isApproved) {
+                        showRow = false;
+                    }
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+                
+                // Highlight matches
+                if (showRow && searchTerm) {
+                    row.classList.add('highlight');
+                } else {
+                    row.classList.remove('highlight');
+                }
+            });
+            
+            sortUsers();
+        }
+        
+        function sortUsers() {
+            const sortBy = userSortSelect.value;
+            const sortDirection = userSortDirectionSelect.value;
+            const rows = Array.from(userTable.querySelectorAll('tbody tr'));
+            
+            // Update header indicators
+            sortableHeaders.forEach(header => {
+                header.classList.remove('asc', 'desc');
+                if (header.getAttribute('data-sort') === sortBy) {
+                    header.classList.add(sortDirection);
+                }
+            });
+            
+            // Sort the rows
+            rows.sort((a, b) => {
+                let valueA, valueB;
+                
+                if (sortBy === 'username') {
+                    valueA = a.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    valueB = b.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                } else if (sortBy === 'displayName') {
+                    // Extract display name from user cell
+                    const userCellA = a.querySelector('td:nth-child(1)').textContent;
+                    const userCellB = b.querySelector('td:nth-child(1)').textContent;
+                    
+                    // Try to extract the display name using the actual format "DisplayName (@username)"
+                    let displayNameA = userCellA.toLowerCase();
+                    let displayNameB = userCellB.toLowerCase();
+                    
+                    // If the format contains an @ symbol, extract the display name part
+                    if (userCellA.includes('@')) {
+                        const parts = userCellA.split('(');
+                        if (parts.length > 0) {
+                            displayNameA = parts[0].trim().toLowerCase();
+                        }
+                    }
+                    
+                    if (userCellB.includes('@')) {
+                        const parts = userCellB.split('(');
+                        if (parts.length > 0) {
+                            displayNameB = parts[0].trim().toLowerCase();
+                        }
+                    }
+                    
+                    valueA = displayNameA;
+                    valueB = displayNameB;
+                } else if (sortBy === 'role') {
+                    // Get role text from badge
+                    const roleBadgeA = a.querySelector('td:nth-child(2) .badge');
+                    const roleBadgeB = b.querySelector('td:nth-child(2) .badge');
+                    
+                    const roleA = roleBadgeA ? roleBadgeA.textContent.trim().toLowerCase() : 
+                                  a.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                    const roleB = roleBadgeB ? roleBadgeB.textContent.trim().toLowerCase() : 
+                                  b.querySelector('td:nth-child(2)').textContent.trim().toLowerCase();
+                    
+                    // Assign numeric values based on role hierarchy
+                    valueA = getRolePriority(roleA);
+                    valueB = getRolePriority(roleB);
+                } else if (sortBy === 'approved') {
+                    valueA = a.querySelector('td:nth-child(3)').textContent.includes('Approved') ? 1 : 0;
+                    valueB = b.querySelector('td:nth-child(3)').textContent.includes('Approved') ? 1 : 0;
+                }
+                
+                if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+                if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Remove all existing rows
+            rows.forEach(row => row.parentNode.removeChild(row));
+            
+            // Append sorted rows
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    userTable.querySelector('tbody').appendChild(row);
+                } else {
+                    userTable.querySelector('tbody').appendChild(row);
+                }
+            });
+        }
+        
+        // Helper function to get role priority for sorting
+        function getRolePriority(role) {
+            if (role.includes('super admin')) return 4;
+            if (role.includes('admin')) return 3;
+            if (role.includes('trusted user')) return 2;
+            if (role.includes('user') && !role.includes('trusted user')) return 1;
+            return 0; // For any other role
+        }
+    }
+    
+    // Comments Management Functionality
+    function initializeCommentsManagement() {
+        const commentSearchInput = document.getElementById('commentSearchInput');
+        const commentSearchBtn = document.getElementById('commentSearchBtn');
+        const commentSortSelect = document.getElementById('commentSortSelect');
+        const commentSortDirectionSelect = document.getElementById('commentSortDirectionSelect');
+        const clearCommentFiltersBtn = document.getElementById('clearCommentFiltersBtn');
+        const commentTable = document.getElementById('commentTable');
+        const sortableHeaders = commentTable.querySelectorAll('th.sortable');
+        
+        // Search functionality
+        commentSearchBtn.addEventListener('click', function() {
+            filterComments();
+        });
+        
+        commentSearchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                filterComments();
+            }
+        });
+        
+        // Sort functionality
+        commentSortSelect.addEventListener('change', function() {
+            sortComments();
+        });
+        
+        commentSortDirectionSelect.addEventListener('change', function() {
+            sortComments();
+        });
+        
+        // Clickable headers for sorting
+        sortableHeaders.forEach(header => {
+            header.addEventListener('click', function() {
+                const sort = this.getAttribute('data-sort');
+                
+                // If already sorting by this column, toggle direction
+                if (commentSortSelect.value === sort) {
+                    commentSortDirectionSelect.value = commentSortDirectionSelect.value === 'asc' ? 'desc' : 'asc';
+                } else {
+                    commentSortSelect.value = sort;
+                }
+                
+                sortComments();
+            });
+        });
+        
+        // Clear filters
+        clearCommentFiltersBtn.addEventListener('click', function() {
+            commentSearchInput.value = '';
+            commentSortSelect.value = 'date';
+            commentSortDirectionSelect.value = 'desc';
+            
+            // Show all rows
+            const rows = commentTable.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+                row.classList.remove('highlight');
+            });
+            
+            // Reset header indicators
+            sortableHeaders.forEach(header => {
+                header.classList.remove('asc', 'desc');
+            });
+        });
+        
+        function filterComments() {
+            const searchTerm = commentSearchInput.value.toLowerCase().trim();
+            const rows = commentTable.querySelectorAll('tbody tr');
+            
+            rows.forEach(row => {
+                // Text content for search
+                const userCell = row.querySelector('td:nth-child(1)');
+                const postCell = row.querySelector('td:nth-child(2)');
+                const commentCell = row.querySelector('td:nth-child(3)');
+                
+                const username = userCell.textContent.toLowerCase();
+                const post = postCell.textContent.toLowerCase();
+                const comment = commentCell.textContent.toLowerCase();
+                
+                let showRow = true;
+                
+                // Apply search filter
+                if (searchTerm) {
+                    showRow = username.includes(searchTerm) || 
+                             post.includes(searchTerm) || 
+                             comment.includes(searchTerm);
+                }
+                
+                row.style.display = showRow ? '' : 'none';
+                
+                // Highlight matches
+                if (showRow && searchTerm) {
+                    row.classList.add('highlight');
+                } else {
+                    row.classList.remove('highlight');
+                }
+            });
+            
+            sortComments();
+        }
+        
+        function sortComments() {
+            const sortBy = commentSortSelect.value;
+            const sortDirection = commentSortDirectionSelect.value;
+            const rows = Array.from(commentTable.querySelectorAll('tbody tr'));
+            
+            // Update header indicators
+            sortableHeaders.forEach(header => {
+                header.classList.remove('asc', 'desc');
+                if (header.getAttribute('data-sort') === sortBy) {
+                    header.classList.add(sortDirection);
+                }
+            });
+            
+            // Sort the rows
+            rows.sort((a, b) => {
+                let valueA, valueB;
+                
+                if (sortBy === 'user') {
+                    valueA = a.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                    valueB = b.querySelector('td:nth-child(1)').textContent.toLowerCase();
+                } else if (sortBy === 'post') {
+                    valueA = a.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                    valueB = b.querySelector('td:nth-child(2)').textContent.toLowerCase();
+                } else if (sortBy === 'date') {
+                    // Extract date from the date cell text
+                    const dateA = new Date(a.querySelector('td:nth-child(4)').querySelector('div').textContent);
+                    const dateB = new Date(b.querySelector('td:nth-child(4)').querySelector('div').textContent);
+                    valueA = dateA.getTime();
+                    valueB = dateB.getTime();
+                }
+                
+                if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+                if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Remove all existing rows
+            rows.forEach(row => row.parentNode.removeChild(row));
+            
+            // Append sorted rows
+            rows.forEach(row => {
+                if (row.style.display !== 'none') {
+                    commentTable.querySelector('tbody').appendChild(row);
+                } else {
+                    commentTable.querySelector('tbody').appendChild(row);
+                }
+            });
+        }
+    }
+    
+    // Content Management Functionality (for both pending and approved content)
+    function initializeContentManagement(type) {
+        const searchInput = document.getElementById(`${type}ContentSearchInput`);
+        const searchBtn = document.getElementById(`${type}ContentSearchBtn`);
+        const sortSelect = document.getElementById(`${type}ContentSortSelect`);
+        const sortDirectionSelect = document.getElementById(`${type}ContentSortDirectionSelect`);
+        const clearFiltersBtn = document.getElementById(`${type}ContentFiltersBtn`);
+        const contentContainer = document.getElementById(`${type}ContentContainer`);
+        const contentCards = contentContainer.querySelectorAll('.content-card');
+        
+        // Search functionality
+        searchBtn.addEventListener('click', function() {
+            filterContent();
+        });
+        
+        searchInput.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter') {
+                filterContent();
+            }
+        });
+        
+        // Sort functionality
+        sortSelect.addEventListener('change', function() {
+            sortContent();
+        });
+        
+        sortDirectionSelect.addEventListener('change', function() {
+            sortContent();
+        });
+        
+        // Clear filters
+        clearFiltersBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            sortSelect.value = 'date';
+            sortDirectionSelect.value = 'desc';
+            
+            // Show all cards
+            contentCards.forEach(card => {
+                card.style.display = '';
+                card.classList.remove('highlight');
+            });
+            
+            sortContent();
+        });
+        
+        function filterContent() {
+            const searchTerm = searchInput.value.toLowerCase().trim();
+            
+            contentCards.forEach(card => {
+                const title = card.getAttribute('data-title');
+                const author = card.getAttribute('data-author');
+                const cardText = card.querySelector('.card-text').textContent.toLowerCase();
+                
+                let showCard = true;
+                
+                // Apply search filter
+                if (searchTerm) {
+                    showCard = title.includes(searchTerm) || 
+                              author.includes(searchTerm) || 
+                              cardText.includes(searchTerm);
+                }
+                
+                card.style.display = showCard ? '' : 'none';
+                
+                // Highlight matches
+                if (showCard && searchTerm) {
+                    card.classList.add('highlight');
+                } else {
+                    card.classList.remove('highlight');
+                }
+            });
+            
+            sortContent();
+        }
+        
+        function sortContent() {
+            const sortBy = sortSelect.value;
+            const sortDirection = sortDirectionSelect.value;
+            const cards = Array.from(contentCards).filter(card => card.style.display !== 'none');
+            
+            // Sort the cards
+            cards.sort((a, b) => {
+                let valueA, valueB;
+                
+                if (sortBy === 'title') {
+                    valueA = a.getAttribute('data-title');
+                    valueB = b.getAttribute('data-title');
+                } else if (sortBy === 'author') {
+                    valueA = a.getAttribute('data-author');
+                    valueB = b.getAttribute('data-author');
+                } else if (sortBy === 'date') {
+                    valueA = parseInt(a.getAttribute('data-date'));
+                    valueB = parseInt(b.getAttribute('data-date'));
+                } else if (sortBy === 'votes') {
+                    valueA = parseInt(a.getAttribute('data-votes'));
+                    valueB = parseInt(b.getAttribute('data-votes'));
+                }
+                
+                if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1;
+                if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1;
+                return 0;
+            });
+            
+            // Reorder the cards
+            cards.forEach(card => {
+                contentContainer.appendChild(card);
+            });
+        }
+        
+        // Initialize with default sort
+        sortContent();
+    }
 </script>

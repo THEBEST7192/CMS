@@ -195,4 +195,35 @@ footer {
   height: 150px;
   font-size: 3em;
   border: 3px solid var(--primary);
+}
+
+/* Admin Panel Sorting and Filtering */
+.sortable {
+  cursor: pointer;
+  position: relative;
+}
+
+.sortable:hover {
+  background-color: rgba(0, 157, 79, 0.1);
+}
+
+.sortable:after {
+  content: "↕";
+  font-size: 0.8em;
+  margin-left: 5px;
+  opacity: 0.5;
+}
+
+.sortable.asc:after {
+  content: "↑";
+  opacity: 1;
+}
+
+.sortable.desc:after {
+  content: "↓";
+  opacity: 1;
+}
+
+.highlight {
+  background-color: rgba(0, 157, 79, 0.2);
 } 
