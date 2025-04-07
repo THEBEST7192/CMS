@@ -104,13 +104,21 @@
                         </div>
                     <% } %>
                     
-                    <form action="/comment" method="POST" class="mt-3">
-                        <input type="hidden" name="itemId" value="<%= item.id %>">
-                        <div class="form-group">
-                            <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
+                    <% if (locals.user) { %>
+                        <form action="/comment" method="POST" class="mt-3">
+                            <input type="hidden" name="itemId" value="<%= item.id %>">
+                            <div class="form-group">
+                                <textarea name="content" class="form-control" rows="3" placeholder="Add a comment..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Post Comment</button>
+                        </form>
+                    <% } else { %>
+                        <div class="mt-3">
+                            <div class="alert alert-info">
+                                <i class="bi bi-info-circle"></i> Please <a href="/login">log in</a> or <a href="/register">create an account</a> to comment and post.
+                            </div>
                         </div>
-                        <button type="submit" class="btn btn-primary">Post Comment</button>
-                    </form>
+                    <% } %>
                 </div>
             </div>
             
