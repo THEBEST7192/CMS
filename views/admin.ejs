@@ -95,9 +95,19 @@
                                 </td>
                                 <td>
                                     <% if (user.username !== 'BobKåre') { %>
-                                        <form action="/admin/approve-user/<%= user.id %>?next=/admin" method="POST" style="display: inline;">
-                                            <button type="submit" class="btn btn-success btn-sm" <%= user.approved ? 'disabled' : '' %>>Approve</button>
-                                        </form>
+                                        <% if (user.approved) { %>
+                                            <form action="/admin/unapprove-user/<%= user.id %>" method="POST" style="display: inline;">
+                                                <input type="hidden" name="_method" value="POST">
+                                                <input type="hidden" name="userId" value="<%= user.id %>">
+                                                <button type="submit" class="btn btn-warning btn-sm">Unapprove</button>
+                                            </form>
+                                        <% } else { %>
+                                            <form action="/admin/approve-user/<%= user.id %>" method="POST" style="display: inline;">
+                                                <input type="hidden" name="_method" value="POST">
+                                                <input type="hidden" name="userId" value="<%= user.id %>">
+                                                <button type="submit" class="btn btn-success btn-sm">Approve</button>
+                                            </form>
+                                        <% } %>
                                         <form action="/admin/delete-user/<%= user.id %>?next=/admin" method="POST" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this user?');">
                                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                                         </form>
@@ -155,7 +165,10 @@
                                         </div>
                                     <% } %>
                                 </td>
-                                <td><%= new Date(comment.created_at).toLocaleString() %></td>
+                                <td>
+                                    <div><%= new Date(comment.created_at).toLocaleDateString() %></div>
+                                    <div class="small text-muted"><%= new Date(comment.created_at).toLocaleTimeString() %></div>
+                                </td>
                                 <td>
                                     <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editCommentModal<%= comment.id %>">
                                         Edit
@@ -228,6 +241,7 @@
                                 <% } %>
                                 <p class="text-muted small">Posted by <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %></p>
                                 <p class="text-muted small">Votes: <%= item.vote_count %></p>
+                                <p class="text-muted small">Posted on: <%= new Date(item.created_at).toLocaleString() %></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editPostModal<%= item.id %>">
                                         Edit
@@ -307,6 +321,7 @@
                                 <% } %>
                                 <p class="text-muted small">Posted by <%= item.author_display_name ? `${item.author_display_name} (@${item.author_username})` : item.author_username %></p>
                                 <p class="text-muted small">Votes: <%= item.vote_count %></p>
+                                <p class="text-muted small">Posted on: <%= new Date(item.created_at).toLocaleString() %></p>
                                 <div class="d-flex gap-2">
                                     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editApprovedPostModal<%= item.id %>">
                                         Edit

@@ -532,11 +532,53 @@ app.post('/admin/approve/:itemId', isAdmin, async (req, res) => {
 app.post('/admin/approve-user/:userId', isAdmin, async (req, res) => {
   const { userId } = req.params;
   try {
-    await pool.query('UPDATE users SET approved = 1 WHERE id = ?', [userId]);
+    console.log(`Attempting to approve user with ID: ${userId}`);
+    
+    // Check if user exists first
+    const [userCheck] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    if (userCheck.length === 0) {
+      console.error(`User with ID ${userId} not found`);
+      return res.redirect('/admin?error=User not found');
+    }
+    
+    // Update the user's approval status
+    const result = await pool.query('UPDATE users SET approved = 1 WHERE id = ?', [userId]);
+    console.log('Update result:', result);
+    
     res.redirect('/admin?success=User approved successfully');
   } catch (error) {
-    console.error('Error approving user:', error);
+    console.error(`Error approving user ${userId}:`, error);
     res.redirect('/admin?error=Error approving user: ' + error.message);
+  }
+});
+
+// Handle unapprove user action
+app.post('/admin/unapprove-user/:userId', isAdmin, async (req, res) => {
+  const { userId } = req.params;
+  try {
+    console.log(`Attempting to unapprove user with ID: ${userId}`);
+    
+    // Check if user exists first
+    const [userCheck] = await pool.query('SELECT * FROM users WHERE id = ?', [userId]);
+    if (userCheck.length === 0) {
+      console.error(`User with ID ${userId} not found`);
+      return res.redirect('/admin?error=User not found');
+    }
+    
+    // Prevent unapproving BobKåre
+    if (userCheck[0].username === 'BobKåre') {
+      console.log('Attempted to unapprove super admin BobKåre');
+      return res.redirect('/admin?error=Cannot unapprove super admin');
+    }
+    
+    // Update the user's approval status
+    const result = await pool.query('UPDATE users SET approved = 0 WHERE id = ?', [userId]);
+    console.log('Update result:', result);
+    
+    res.redirect('/admin?success=User unapproved successfully');
+  } catch (error) {
+    console.error(`Error unapproving user ${userId}:`, error);
+    res.redirect('/admin?error=Error unapproving user: ' + error.message);
   }
 });
 

@@ -104,6 +104,9 @@
                                                                         <img src="<%= comment.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 200px;">
                                                                     </div>
                                                                 <% } %>
+                                                                <small class="text-muted">
+                                                                    <%= new Date(comment.created_at).toLocaleString() %>
+                                                                </small>
                                                             </div>
                                                             <div>
                                                                 <% if (comment.user_id === locals.user?.id || locals.user?.role === 'admin') { %>
@@ -338,6 +341,9 @@
                                                                         <img src="<%= comment.gif_url %>" alt="GIF" class="img-fluid rounded" style="max-height: 200px;">
                                                                     </div>
                                                                 <% } %>
+                                                                <small class="text-muted">
+                                                                    <%= new Date(comment.created_at).toLocaleString() %>
+                                                                </small>
                                                             </div>
                                                             <div>
                                                                 <% if (comment.user_id === locals.user?.id || locals.user?.role === 'admin') { %>
