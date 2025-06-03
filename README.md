@@ -1,6 +1,9 @@
 # CMS
 
-A Node.js + Express + EJS web application for content sharing with user roles, this site has tenor gifs and user uploaded images with encryption for credentials.
+A Node.js + Express + EJS web application for content sharing with user roles, this site has tenor gifs and user uploaded images with encryption for credentials. 
+The default crededntials for the super admin is:
+Username:BobKåre
+Password: %@mcdxcc%/--%c%_/**cllfcbma
 
 ## Features
 - User authentication and roles
@@ -27,8 +30,8 @@ A Node.js + Express + EJS web application for content sharing with user roles, t
    npm install
    ```
 4. Configure environment variables:
-   - Edit the `.env` file with your database credentials and `SESSION_SECRET`.
-   - Add your Tenor API key to the `.env` file.
+   - Edit the `.env` file with your database credentials formatted as, `DB_HOST`, `DB_USER` `DB_NAME` and `DB_PASSWORD`.  You can opionally add your session secret as `SESSION_SECRET` and your port as `PORT`.
+   - Add your Tenor API as `TENOR_API_KEY` key to the `.env` file.
 
 ## Available Scripts
 - `npm start` - Run the app
